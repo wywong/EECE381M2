@@ -7,3 +7,4 @@
 !*.qsys
 !*.csv
 *_bsp
+.metadata
