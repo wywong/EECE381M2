@@ -6,5 +6,6 @@
 !*.vhd
 !*.qsys
 !*.csv
+!*.xml
 *_bsp
 .metadata
