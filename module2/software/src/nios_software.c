@@ -3,6 +3,7 @@
 #include "altera_up_avalon_rs232.h"
 #include <string.h>
 #include <system.h>
+#include "../inc/string_graphics.h"
 
 int main()
 {
@@ -10,6 +11,8 @@ int main()
 	unsigned char data;
 	unsigned char parity;
 	unsigned char message[] = "EECE381 is so much fun";
+	char buffer[256];
+	initBuffers();
 
 	printf("UART Initialization\n");
 	alt_up_rs232_dev* uart = alt_up_rs232_open_dev(RS232_0_NAME);
@@ -50,8 +53,10 @@ int main()
 
 		alt_up_rs232_read_data(uart, &data, &parity);
 
-		printf("%c", data);
+		buffer[i] = (char) data;
 	}
+	buffer[i] = '\0';\
+	writeString(buffer, 0, 0);
 	printf("\n");
 	printf("Message Echo Complete\n");
 
