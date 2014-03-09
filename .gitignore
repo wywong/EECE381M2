@@ -8,6 +8,7 @@
 !*.qsys
 !*.csv
 !*.xml
+!*.png
 **/bin
 **/gen
 **/build
