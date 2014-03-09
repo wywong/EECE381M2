@@ -26,8 +26,8 @@ ENTITY vga IS
 		VGA_VS : out std_logic;
 		VGA_SYNC : out std_logic;
 
-		rs232_rxd : in std_logic;
-		rs232_txd : out std_logic;
+		UART_rxd : in std_logic;
+		UART_txd : out std_logic;
 
 		SRAM_DQ : INOUT STD_LOGIC_VECTOR(15 downto 0);
 		SRAM_ADDR : OUT STD_LOGIC_VECTOR(17 downto 0);
@@ -104,8 +104,8 @@ PORT MAP (
 	vga_controller_G => VGA_G,
 	vga_controller_B => VGA_B,
 
-	rs232_rxd => rs232_rxd,
-	rs232_txd => rs232_txd,
+	rs232_rxd => UART_rxd,
+	rs232_txd => UART_txd,
 
 	sram_DQ => SRAM_DQ,
 	sram_ADDR => SRAM_ADDR,
