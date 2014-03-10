@@ -54,3 +54,4 @@ void clearCharBuff(void)
 	alt_up_char_buffer_clear(char_buffer);
 }
 
+
