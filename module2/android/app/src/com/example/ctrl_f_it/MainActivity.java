@@ -1,6 +1,7 @@
 package com.example.ctrl_f_it;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -44,9 +45,10 @@ public class MainActivity extends Activity {
         }
     }
     public void openCamera(){
-    	Toast t = Toast.makeText(getApplicationContext(), "I would now call the camera function", Toast.LENGTH_LONG);
-    	t.show();
+    	Intent intent = new Intent(this, CameraActivity.class);
+    	startActivity(intent);
     }
+    
     public void openEditor(){
     	Toast t = Toast.makeText(getApplicationContext(), "I would now call the editor function", Toast.LENGTH_LONG);
     	t.show();
