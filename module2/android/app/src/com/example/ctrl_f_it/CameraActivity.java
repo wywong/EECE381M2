@@ -4,10 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Date;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
@@ -82,6 +83,13 @@ public class CameraActivity extends Activity {
 	            Log.d("PictureCallback", "File not found: " + e.getMessage());
 	        } catch (IOException e) {
 	            Log.d("PictureCallback", "Error accessing file: " + e.getMessage());
+	        } finally {
+	            mCamera.release();
+	            mCamera = null;
+	            startActivity(new Intent(CameraActivity.this, CameraActivity.class));
+	            
+	            releaseCamera();
+	            finish();
 	        }
 	    }
 	};
@@ -98,9 +106,37 @@ public class CameraActivity extends Activity {
         // Create a media file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         File mediaFile;
-        mediaFile = new File(mediaStorageDir.getPath() + File.separator + "IMG_" + timeStamp + ".jpg");
+        mediaFile = new File(mediaStorageDir.getPath() + File.separator + "IMG_" + timeStamp + ".jpeg");
 
         return mediaFile;
+    }
+	
+	@Override
+    protected void onPause() {
+        super.onPause();
+        releaseCamera();              // release the camera immediately on pause event
+    }
+
+	private void releaseCamera(){
+        if (mCamera != null){
+            mCamera.release();        // release the camera for other applications
+            mCamera = null;
+        }
+    }
+	
+	// Backwards compatible recreate().
+    @Override
+    public void recreate()
+    {
+        if (android.os.Build.VERSION.SDK_INT >= 11)
+        {
+            super.recreate();
+        }
+        else
+        {
+            startActivity(getIntent());
+            finish();
+        }
     }
 }
 
