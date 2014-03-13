@@ -28,10 +28,11 @@ public class CameraActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
+        
+//        getActionBar().setDisplayHomeAsUpEnabled(true);
 
         // Create an instance of Camera
         mCamera = getCameraInstance();
-        mCamera.setDisplayOrientation(90);
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this, mCamera);
         FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
@@ -83,13 +84,9 @@ public class CameraActivity extends Activity {
 	            Log.d("PictureCallback", "File not found: " + e.getMessage());
 	        } catch (IOException e) {
 	            Log.d("PictureCallback", "Error accessing file: " + e.getMessage());
-	        } finally {
-	            mCamera.release();
-	            mCamera = null;
-	            startActivity(new Intent(CameraActivity.this, CameraActivity.class));
-	            
+	        } finally {	            
 	            releaseCamera();
-	            finish();
+	            //finish();
 	        }
 	    }
 	};
