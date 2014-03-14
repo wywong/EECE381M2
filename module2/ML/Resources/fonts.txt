@@ -1,11 +1,7 @@
+Agency FB
 Andalus
 Aparajita
-Arabic typesetting
 Arial
-Arial black
-Arial narrow
-Arial Rounded MT Bold
-Arial Unicode MS
 Baskerville Old Face
 Batang
 Bell MT
@@ -24,27 +20,31 @@ Centaur
 Century
 Comic Sans MS
 Consolas
+Constantia
 Copperplate Gothic Light
 Corbel
+Courier New
 Dotum
 Ebrima
-Engravers MT
 Eras Medium ITC
 Estrangelo Edessa
 Euphemia
-Felix Tilting
 Footlight MT Light
 Franklin Gothic Book
-Gabriola
+Garamond
 Georgia
+Gill Sans MT
 Gisha
 Goudy Old Style
 Gulim
 High Tower Text
 JasmineUPC
 Javanese Text
-Courier New
-Times New Roman
 Lucida Console
 Nimala UI
+Palatino Linotype
+Perpetua
+Tahoma
+Times New Roman
 Trebuchet MS
+Verdana
