@@ -58,7 +58,11 @@ public class CameraActivity extends Activity {
 	public static Camera getCameraInstance(){
 	    Camera c = null;
 	    try {
-	        c = Camera.open(); // attempt to get a Camera instance
+	    	// Attempts to open a back-facing camera, if unavailable, opens the first camera on the device
+	        c = Camera.open();
+	        if (c == null) {
+	        	c = Camera.open(0);
+	        }
 	    }
 	    catch (Exception e){
 	        // Camera is not available (in use or does not exist)
