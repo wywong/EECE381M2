@@ -6,8 +6,8 @@ y = [];
 numFonts = 50;
 count = 0;
 
-% 0 to 25 represents A to Z
-f = 0;
+% 1 to 26 represents A to Z
+f = 1;
 
 for ii = imageFiles'
 %  disp(strcat('tiles/', ii.name));
@@ -26,4 +26,4 @@ for ii = imageFiles'
   X = [X; t];
 end
 
-save('train.mat', 'X', 'y');
+save('nnTrain/train.mat', 'X', 'y');

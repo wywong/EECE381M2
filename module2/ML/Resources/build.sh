@@ -8,3 +8,4 @@ python tileIt.py;
 mogrify -resize 20x20! -format bmp tiles/*;
 
 octave prepData.m;
+octave verify.m;

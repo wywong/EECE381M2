@@ -1,4 +1,4 @@
-load('train.mat');
+load('nnTrain/train.mat');
 m = size(X, 1);
 
 % Randomly select 100 data points to display
