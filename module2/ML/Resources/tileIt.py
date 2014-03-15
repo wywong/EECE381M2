@@ -5,7 +5,7 @@ import glob
 images = list(glob.glob('Training_Fonts/*.bmp'))
 white = 255
 
-let = list(string.ascii_lowercase)
+let = list(string.ascii_uppercase)
 
 fonts = 0
 
@@ -35,7 +35,7 @@ while images:
 
   leftx = 0
   for l in let:
-    if(l == 'z'):
+    if(l == 'Z'):
       rightx = width
     else:
       rightx = bars.pop(0)
