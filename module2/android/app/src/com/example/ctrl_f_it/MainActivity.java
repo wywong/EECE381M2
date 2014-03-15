@@ -40,6 +40,8 @@ public class MainActivity extends Activity {
             case R.id.action_settings:
                 openSettings();
                 return true;
+            case R.id.action_processing:
+            	openProcessing();
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -60,5 +62,9 @@ public class MainActivity extends Activity {
     public void openSettings(){
     	Toast t = Toast.makeText(getApplicationContext(), "I would now call the settings function", Toast.LENGTH_LONG);
     	t.show();
+    }
+    public void openProcessing(){
+    	Intent intent = new Intent(this, ProcessingActivity.class);
+    	startActivity(intent);
     }
 }
