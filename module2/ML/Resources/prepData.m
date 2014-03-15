@@ -21,7 +21,7 @@ for ii = imageFiles'
   y = [y; f];
 
   t = imread(strcat('tiles/', ii.name));
-  t = reshape(t', 1, prod(size(t)));
+  t = reshape(t, 1, prod(size(t)));
   t = double(t) / 255.0;
   X = [X; t];
 end
