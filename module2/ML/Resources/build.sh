@@ -5,7 +5,7 @@ mkdir tiles;
 
 python tileIt.py;
 
-mogrify -resize 32x32! -format bmp tiles/*;
+mogrify -resize 20x20! -format bmp tiles/*;
 
 octave prepData.m;
 octave verify.m;

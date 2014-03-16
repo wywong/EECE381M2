@@ -2,15 +2,16 @@
 clear ; close all; clc
 
 %% Setup the parameters you will use for this exercise
-input_layer_size  = 32*32;  % 20x20 Input Images of Digits
+input_layer_size  = 400;  % 20x20 Input Images of Digits
 num_labels = 26;          % A to Z , 1 to 26
 
 load('train.mat');
+load('test.mat');
 
 A = [];
 B = [];
 
-for ii=25:10:150
+for ii=24:12:120
   hidden_layer_size = ii;   % hidden units
 %% ================ Part 6: Initializing Pameters ================
 %  In this part of the exercise, you will be starting to implment a two
@@ -38,7 +39,7 @@ fprintf('\nTraining Neural Network... with %i hidden units\n', hidden_layer_size
 
 %  After you have completed the assignment, change the MaxIter to a larger
 %  value to see how more training helps.
-options = optimset('MaxIter', 150);
+options = optimset('MaxIter', 125);
 
 %  You should also try different values of lambda
 lambda = 1.4;
@@ -47,7 +48,7 @@ lambda = 1.4;
 costFunction = @(p) nnCostFunction(p, ...
                                    input_layer_size, ...
                                    hidden_layer_size, ...
-                                   num_labels, X, y, lambda);
+                                   num_labels, XTrain, yTrain, lambda);
   % Now, costFunction is a function that takes in only one argument (the
   % neural network parameters)
   [nn_params, cost] = fmincg(costFunction, initial_nn_params, options);
@@ -65,10 +66,13 @@ costFunction = @(p) nnCostFunction(p, ...
   %  neural network to predict the labels of the training set. This lets
   %  you compute the training set accuracy.
 
-  pred = predict(Theta1, Theta2, X);
+  pred = predict(Theta1, Theta2, XTest);
+  [Jtest, grad] = nnCostFunction(nn_params, input_layer_size,
+      hidden_layer_size, num_labels, XTest, yTest, 0);
 
   A = [A ii];
-  B = [B mean(double(pred == y))];
+%  B = [B mean(double(pred == y))];
+  B = [B Jtest];
 end
 
 plot(A, B);

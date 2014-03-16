@@ -26,4 +26,17 @@ for ii = imageFiles'
   X = [X; t];
 end
 
-save('nnTrain/train.mat', 'X', 'y');
+shuffle = [y X];
+shuffle = shuffle(randperm(size(shuffle, 1)),:);
+
+y = shuffle(:, 1);
+X = shuffle(:, 2:end);
+
+yTrain = y(1:0.8*size(y,1),:);
+XTrain = X(1:0.8*size(X,1),:);
+
+yTest = y(0.8*size(y,1):end,:);
+XTest = X(0.8*size(X,1):end,:);
+
+save('nnTrain/train.mat', 'XTrain', 'yTrain');
+save('nnTrain/test.mat', 'XTest', 'yTest');

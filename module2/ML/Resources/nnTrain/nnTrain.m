@@ -2,11 +2,12 @@
 clear ; close all; clc
 
 %% Setup the parameters you will use for this exercise
-input_layer_size  = 32*32;  % 20x20 Input Images of Digits
-hidden_layer_size = 85;   % hidden units
+input_layer_size  = 400;  % 20x20 Input Images of Digits
+hidden_layer_size = 72;   % hidden units
 num_labels = 26;          % A to Z , 1 to 26
 
 load('train.mat');
+load('test.mat');
 
 
 %% ================ Part 6: Initializing Pameters ================
@@ -34,7 +35,7 @@ fprintf('\nTraining Neural Network... \n')
 
 %  After you have completed the assignment, change the MaxIter to a larger
 %  value to see how more training helps.
-options = optimset('MaxIter', 500);
+options = optimset('MaxIter', 200);
 
 %  You should also try different values of lambda
 lambda = 1.4;
@@ -43,7 +44,7 @@ lambda = 1.4;
 costFunction = @(p) nnCostFunction(p, ...
                                    input_layer_size, ...
                                    hidden_layer_size, ...
-                                   num_labels, X, y, lambda);
+                                   num_labels, XTrain, yTrain, lambda);
 
 % Now, costFunction is a function that takes in only one argument (the
 % neural network parameters)
@@ -70,17 +71,17 @@ displayData(Theta1(:, 2:end));
 %  the labels. You will now implement the "predict" function to use the
 %  neural network to predict the labels of the training set. This lets
 %  you compute the training set accuracy.
-for ii=0:25
-  pred = predict(Theta1, Theta2, X(1+(ii*50):50*(ii+1), :));
+%for ii=0:25
+%  pred = predict(Theta1, Theta2, X(1+(ii*50):50*(ii+1), :));
+%
+%  fprintf('\nTraining Set Accuracy %i: %f\n', ii+1, mean(double(pred == y(1+(ii*50):50*(ii+1)))) * 100);
+%end
 
-  fprintf('\nTraining Set Accuracy %i: %f\n', ii+1, mean(double(pred == y(1+(ii*50):50*(ii+1)))) * 100);
-end
+pred = predict(Theta1, Theta2, XTest);
+
+fprintf('\nTraining Set Accuracy : %f\n', mean(double(pred == yTest)) * 100);
 
 save('theta.mat', 'Theta1', 'Theta2');
-
 csvwrite('theta1.csv', Theta1);
 csvwrite('theta2.csv', Theta2);
-pred = predict(Theta1, Theta2, X);
-
-fprintf('\nTraining Set Accuracy : %f\n', mean(double(pred == y)) * 100);
 pause;
