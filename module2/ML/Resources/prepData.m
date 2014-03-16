@@ -11,7 +11,7 @@ f = 1;
 
 for ii = imageFiles'
 %  disp(strcat('tiles/', ii.name));
-  if count == 50
+  if count == 2*numFonts
     count = 0;
     f = f + 1;
   end

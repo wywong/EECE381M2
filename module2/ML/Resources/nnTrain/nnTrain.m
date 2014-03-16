@@ -2,7 +2,7 @@
 clear ; close all; clc
 
 %% Setup the parameters you will use for this exercise
-input_layer_size  = 400;  % 20x20 Input Images of Digits
+input_layer_size  = 32*32;  % 20x20 Input Images of Digits
 hidden_layer_size = 85;   % hidden units
 num_labels = 26;          % A to Z , 1 to 26
 
@@ -34,7 +34,7 @@ fprintf('\nTraining Neural Network... \n')
 
 %  After you have completed the assignment, change the MaxIter to a larger
 %  value to see how more training helps.
-options = optimset('MaxIter', 400);
+options = optimset('MaxIter', 500);
 
 %  You should also try different values of lambda
 lambda = 1.4;
@@ -73,10 +73,14 @@ displayData(Theta1(:, 2:end));
 for ii=0:25
   pred = predict(Theta1, Theta2, X(1+(ii*50):50*(ii+1), :));
 
-  fprintf('\nTraining Set Accuracy %i: %f\n', ii, mean(double(pred == y(1+(ii*50):50*(ii+1)))) * 100);
+  fprintf('\nTraining Set Accuracy %i: %f\n', ii+1, mean(double(pred == y(1+(ii*50):50*(ii+1)))) * 100);
 end
 
 save('theta.mat', 'Theta1', 'Theta2');
 
 csvwrite('theta1.csv', Theta1);
 csvwrite('theta2.csv', Theta2);
+pred = predict(Theta1, Theta2, X);
+
+fprintf('\nTraining Set Accuracy : %f\n', mean(double(pred == y)) * 100);
+pause;
