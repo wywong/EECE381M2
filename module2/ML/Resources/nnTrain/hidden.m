@@ -42,7 +42,7 @@ fprintf('\nTraining Neural Network... with %i hidden units\n', hidden_layer_size
 options = optimset('MaxIter', 125);
 
 %  You should also try different values of lambda
-lambda = 0.02;
+lambda = 0.16;
 
 % Create "short hand" for the cost function to be minimized
 costFunction = @(p) nnCostFunction(p, ...

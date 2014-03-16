@@ -77,9 +77,11 @@ displayData(Theta1(:, 2:end));
 %  fprintf('\nTraining Set Accuracy %i: %f\n', ii+1, mean(double(pred == y(1+(ii*50):50*(ii+1)))) * 100);
 %end
 
-pred = predict(Theta1, Theta2, XTest);
 
-fprintf('\nTraining Set Accuracy : %f\n', mean(double(pred == yTest)) * 100);
+pred = predict(Theta1, Theta2, XTest);
+fprintf('\nTraining Set Accuracy (Test Data): %f\n', mean(double(pred == yTest)) * 100);
+pred = predict(Theta1, Theta2, XTrain);
+fprintf('\nTraining Set Accuracy (Training Data) : %f\n', mean(double(pred == yTrain)) * 100);
 
 save('theta.mat', 'Theta1', 'Theta2');
 csvwrite('theta1.csv', Theta1);
