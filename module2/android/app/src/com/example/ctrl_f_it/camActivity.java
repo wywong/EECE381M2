@@ -21,12 +21,16 @@ import android.widget.Toast;
 public class camActivity extends Activity {
 	public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
 	public static final int MEDIA_TYPE_IMAGE = 1;
+	 
 	
 	private Uri fileUri;
 	
 	private ImageView imgPreview;
 	private Button btnCapturePicture;
-	
+	private Button btnConfirm;
+	private Button btnRetry;
+
+	public static String filePath;
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,6 +38,8 @@ public class camActivity extends Activity {
  
         imgPreview = (ImageView) findViewById(R.id.camera_preview);
         btnCapturePicture = (Button) findViewById(R.id.button_capture);
+        btnConfirm = (Button) findViewById(R.id.button_confirm);
+        btnRetry = (Button) findViewById(R.id.button_retry);
  
         /**
          * Capture image button click event
@@ -43,6 +49,24 @@ public class camActivity extends Activity {
             @Override
             public void onClick(View v) {
                 // capture picture
+                captureImage();
+            }
+        });
+        
+        btnConfirm.setOnClickListener(new View.OnClickListener() {
+        	@Override
+            public void onClick(View v) {
+                // capture picture
+                saveImage();
+                finish();
+            }
+        });
+        
+        btnRetry.setOnClickListener(new View.OnClickListener() {
+        	@Override
+            public void onClick(View v) {
+                // capture picture
+        		deleteImage();
                 captureImage();
             }
         });
@@ -60,6 +84,21 @@ public class camActivity extends Activity {
 	  
 	     // start the image capture Intent
 	     startActivityForResult(intent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
+	 }
+	 
+	 /*
+	  * Save image captured and set public string to be most recent picture path
+	  */
+	 private void saveImage() {
+	     filePath = fileUri.getPath();
+	 }
+	 
+	 /*
+	  * Delete most recently captured image
+	  */
+	 private void deleteImage() {
+		 File file = new File(fileUri.getPath());
+		 boolean deleted = file.delete();
 	 }
 	 
 	 /**
@@ -89,19 +128,19 @@ public class camActivity extends Activity {
 	 private void previewCapturedImage() {
         try { 
             imgPreview.setVisibility(View.VISIBLE);
- 
+
             // bitmap factory
             BitmapFactory.Options options = new BitmapFactory.Options();
- 
-            // downsizing image as it throws OutOfMemory Exception for larger
-            // images
-            options.inSampleSize = 8;
  
             final Bitmap bitmap = BitmapFactory.decodeFile(fileUri.getPath(),options);
  
             imgPreview.setImageBitmap(bitmap);
         } catch (NullPointerException e) {
             e.printStackTrace();
+        }
+        finally{
+        	Toast.makeText(getApplicationContext(),
+        	"If text matches given lines click confirm otherwise click retry to try again", Toast.LENGTH_LONG).show();
         }
     }
 	 
