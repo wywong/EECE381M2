@@ -126,5 +126,5 @@ while tiles:
   # print left, right
   # print top, bottom
 
-  word = re.sub('tiles/|.bmp', '', fpath) + '.0'
+  word = re.sub('tiles/|.bmp', '', fpath) + '.9'
   im.crop((left, top, right, bottom)).save('tiles/{0}.bmp'.format(word))
