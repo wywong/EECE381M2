@@ -46,6 +46,23 @@ while images:
 
   fonts += 1
 
+tilt = list(glob.glob('tiles/*.bmp'))
+while tilt:
+  fpath = tilt.pop(0)
+
+  im = Image.open(fpath).convert('RGBA')
+  white_bg = Image.new('RGBA', im.size, (255,)*4)
+  rot = im.rotate(5)
+  combined = Image.composite(rot, white_bg, rot)
+
+  word = re.sub('tiles/|.bmp', '', fpath)
+
+  combined.convert('L').save('tiles/{0}.bmp'.format(word+'.0'))
+
+  rot = im.rotate(-10)
+  combined = Image.composite(rot, white_bg, rot)
+  combined.convert('L').save('tiles/{0}.bmp'.format(word+'.1'))
+
 tiles = list(glob.glob('tiles/*.bmp'))
 
 while tiles:
