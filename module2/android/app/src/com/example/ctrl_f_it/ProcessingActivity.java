@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
@@ -16,15 +17,19 @@ public class ProcessingActivity extends Activity {
 	
 	public Bitmap imageFile;
 	public Bitmap finalThresholdImage;
+    public Bitmap character;
+    public Bitmap charWithWhite;
+    
     public int finalCharacterRows = 0;
     public int beginningCharacterRow = 0;
     public int height; 
     public int width;
     public int[] characterPixelArray;
-    public Bitmap character;
+
     String filePath = "/dev/characters.bmp";
     public int startx;
     public int starty = 0;
+    
 
 
 	@Override
@@ -125,14 +130,23 @@ public class ProcessingActivity extends Activity {
     }
     
     public void createCharacterBitmap(String characterName){
-        //COPY VALUES FROM CHARACTERPIXELARRAY UP UNTIL FINALCHARACTERROWS INTO A NEW ARRAY WITH WHITE BUFFER
+    	
         int whitespace = finalCharacterRows/2;
-        int characterBitmapWidth = finalCharacterRows*2;
         
         //character = Bitmap.createBitmap(finalCharacterArray, characterBitmapWidth , height, Bitmap.Config.ALPHA_8);
         character = Bitmap.createBitmap(finalThresholdImage, startx, starty, finalCharacterRows, height );
-        saveCharacterBitmapToFile(characterName);
         
+        addWhiteSpace(whitespace, 0);
+        saveCharacterBitmapToFile(characterName);
+    }
+    
+    public void addWhiteSpace( int padding_x, int padding_y){
+        //charWithWhite = Bitmap.createBitmap(character.getWidth() + padding_x, character.getHeight() + padding_y, Bitmap.Config.ALPHA_8);
+        
+    	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, finalCharacterRows*2, height );
+    	Canvas whitespace = new Canvas(charWithWhite);
+        whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE); 
+        whitespace.drawBitmap(character, padding_x, padding_y, null);
     }
       
 
@@ -146,7 +160,8 @@ public class ProcessingActivity extends Activity {
     	try {
     	       out = new FileOutputStream(characterFile);
     	       //finalThresholdImage.compress(Bitmap.CompressFormat.PNG, 90, out);
-    	       character.compress(Bitmap.CompressFormat.PNG, 90, out);
+    	       //character.compress(Bitmap.CompressFormat.PNG, 90, out);
+    	       charWithWhite.compress(Bitmap.CompressFormat.PNG, 90, out);
     	} catch (Exception e) {
     	    e.printStackTrace();
     	} finally {
