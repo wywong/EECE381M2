@@ -1,3 +1,4 @@
+% get the filenames of the bitmap files in the tiles folder
 imageFiles = dir('tiles/*.bmp');
 
 X = [];
@@ -29,17 +30,21 @@ for ii = imageFiles'
   X = [X; t];
 end
 
+% randomize the training set
 shuffle = [y X];
 shuffle = shuffle(randperm(size(shuffle, 1)),:);
 
 y = shuffle(:, 1);
 X = shuffle(:, 2:end);
 
+% 80% of data is used for training the Neural Network
 yTrain = y(1:round(0.8*size(y,1)),:);
 XTrain = X(1:round(0.8*size(X,1)),:);
 
+% 20% is used for testing purposes
 yTest = y(round(0.8*size(y,1)):end,:);
 XTest = X(round(0.8*size(X,1)):end,:);
 
+% save the data
 save('nnTrain/train.mat', 'XTrain', 'yTrain');
 save('nnTrain/test.mat', 'XTest', 'yTest');
