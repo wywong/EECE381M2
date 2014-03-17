@@ -2,6 +2,7 @@ import Image
 import string
 import glob
 import re
+import random
 
 images = list(glob.glob('Training_Fonts/*.bmp'))
 white = 255
@@ -47,9 +48,9 @@ while images:
   fonts += 1
 
 tilt = list(glob.glob('tiles/*.bmp'))
-angle = 2
 while tilt:
   fpath = tilt.pop(0)
+  angle = random.uniform(0.1, 2.5)
 
   im = Image.open(fpath).convert('RGBA')
   white_bg = Image.new('RGBA', im.size, (255,)*4)
@@ -59,8 +60,10 @@ while tilt:
   word = re.sub('tiles/|.bmp', '', fpath)
 
   combined.convert('L').save('tiles/{0}.bmp'.format(word+'.0'))
+  rot = im.rotate(-angle)
 
-  rot = im.rotate(-2*angle)
+  angle = random.uniform(0.1, 2.5)
+  rot = im.rotate(-angle)
   combined = Image.composite(rot, white_bg, rot)
   combined.convert('L').save('tiles/{0}.bmp'.format(word+'.1'))
 
