@@ -4,6 +4,7 @@ X = [];
 y = [];
 
 numFonts = 77;
+tilesPerFont = 3;
 count = 0;
 
 % 1 to 26 represents A to Z
@@ -11,7 +12,7 @@ f = 1;
 
 for ii = imageFiles'
 %  disp(strcat('tiles/', ii.name));
-  if count == 6*numFonts
+  if count == tilesPerFont*numFonts
     count = 0;
     f = f + 1;
   end

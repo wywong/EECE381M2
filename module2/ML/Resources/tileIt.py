@@ -15,7 +15,7 @@ while images:
   im = Image.open(images.pop(0)).convert('L')
 
   pixels = list(im.getdata())
-  pixels = [0 if x == 0 else white for x in pixels]
+  pixels = [0 if x <= 230 else white for x in pixels]
   width, height = im.size
   pixels = [pixels[i * width:(i + 1) * width] for i in xrange(height)]
 
@@ -42,32 +42,12 @@ while images:
     else:
       rightx = bars.pop(0)
 #    print (leftx, 0, rightx, height)
-    im.crop((leftx, 1, rightx, height-1)).save('tiles/{0}{1}.bmp'.format(l, fonts))
+    im.crop((leftx, 1, rightx, height-1)).save('tmp/{0}{1}.bmp'.format(l, fonts))
     leftx = rightx + 1
 
   fonts += 1
 
-tilt = list(glob.glob('tiles/*.bmp'))
-while tilt:
-  fpath = tilt.pop(0)
-  angle = random.uniform(0.1, 2.5)
-
-  im = Image.open(fpath).convert('RGBA')
-  white_bg = Image.new('RGBA', im.size, (255,)*4)
-  rot = im.rotate(angle)
-  combined = Image.composite(rot, white_bg, rot)
-
-  word = re.sub('tiles/|.bmp', '', fpath)
-
-  combined.convert('L').save('tiles/{0}.bmp'.format(word+'.0'))
-  rot = im.rotate(-angle)
-
-  angle = random.uniform(0.1, 2.5)
-  rot = im.rotate(-angle)
-  combined = Image.composite(rot, white_bg, rot)
-  combined.convert('L').save('tiles/{0}.bmp'.format(word+'.1'))
-
-tiles = list(glob.glob('tiles/*.bmp'))
+tiles = list(glob.glob('tmp/*.bmp'))
 
 while tiles:
   fpath = tiles.pop(0)
@@ -130,5 +110,25 @@ while tiles:
   # print left, right
   # print top, bottom
 
-  word = re.sub('tiles/|.bmp', '', fpath) + '.9'
+  word = re.sub('tmp/|.bmp', '', fpath)
   im.crop((left, top, right, bottom)).save('tiles/{0}.bmp'.format(word))
+
+tilt = list(glob.glob('tiles/*.bmp'))
+while tilt:
+  fpath = tilt.pop(0)
+  angle = random.uniform(0.5, 4)
+
+  im = Image.open(fpath).convert('RGBA')
+  white_bg = Image.new('RGBA', im.size, (255,)*4)
+  rot = im.rotate(angle)
+  combined = Image.composite(rot, white_bg, rot)
+
+  word = re.sub('tiles/|.bmp', '', fpath)
+
+  combined.convert('L').save('tiles/{0}.bmp'.format(word+'.0'))
+  rot = im.rotate(-angle)
+
+  angle = random.uniform(0.1, 2.5)
+  rot = im.rotate(-angle)
+  combined = Image.composite(rot, white_bg, rot)
+  combined.convert('L').save('tiles/{0}.bmp'.format(word+'.1'))
