@@ -59,13 +59,6 @@ Theta2 = reshape(nn_params((1 + (hidden_layer_size * (input_layer_size + 1))):en
 
 fprintf('Program paused. Press enter to continue.\n');
 
-%  You can now "visualize" what the neural network is learning by
-%  displaying the hidden units to see what features they are capturing in
-%  the data.
-
-fprintf('\nVisualizing Neural Network... \n')
-
-displayData(Theta1(:, 2:end));
 
 %  After training the neural network, we would like to use it to predict
 %  the labels. You will now implement the "predict" function to use the
@@ -77,7 +70,6 @@ displayData(Theta1(:, 2:end));
 %  fprintf('\nTraining Set Accuracy %i: %f\n', ii+1, mean(double(pred == y(1+(ii*50):50*(ii+1)))) * 100);
 %end
 
-
 pred = predict(Theta1, Theta2, XTest);
 fprintf('\nTraining Set Accuracy (Test Data): %f\n', mean(double(pred == yTest)) * 100);
 pred = predict(Theta1, Theta2, XTrain);
@@ -86,4 +78,13 @@ fprintf('\nTraining Set Accuracy (Training Data) : %f\n', mean(double(pred == yT
 save('theta.mat', 'Theta1', 'Theta2');
 csvwrite('theta1.csv', Theta1);
 csvwrite('theta2.csv', Theta2);
+
+%  You can now "visualize" what the neural network is learning by
+%  displaying the hidden units to see what features they are capturing in
+%  the data.
+
+fprintf('\nVisualizing Neural Network... \n')
+
+displayData(Theta1(:, 2:end));
+
 pause;
