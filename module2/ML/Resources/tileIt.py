@@ -15,7 +15,7 @@ while images:
   im = Image.open(images.pop(0)).convert('L')
 
   pixels = list(im.getdata())
-  pixels = [0 if x <= 230 else white for x in pixels]
+  pixels = [0 if x <= 240 else white for x in pixels]
   width, height = im.size
   pixels = [pixels[i * width:(i + 1) * width] for i in xrange(height)]
 
@@ -90,22 +90,28 @@ while tiles:
   # print hbars
 
   if(vbars):
-    left = vbars.pop(0)
-    while vbars:
-      if (vbars[0] - left) != 1:
-        right = vbars.pop(0)
-        break
-      else:
-        left = vbars.pop(0)
+    if vbars[0] == 0:
+      left = vbars.pop(0)
+      while vbars:
+        if (vbars[0] - left) != 1:
+          right = vbars.pop(0)
+          break
+        else:
+          left = vbars.pop(0)
+    else:
+      right = vbars.pop(0)
 
   if(hbars):
-    top = hbars.pop(0)
-    while hbars:
-      if (hbars[0] - top) != 1:
-        bottom = hbars.pop(0)
-        break
-      else:
-        top = hbars.pop(0)
+    if hbars[0] == 0:
+      top = hbars.pop(0)
+      while hbars:
+        if (hbars[0] - top) != 1:
+          bottom = hbars.pop(0)
+          break
+        else:
+          top = hbars.pop(0)
+    else:
+      bottom = hbars.pop(0)
 
   # print left, right
   # print top, bottom
@@ -116,7 +122,7 @@ while tiles:
 tilt = list(glob.glob('tiles/*.bmp'))
 while tilt:
   fpath = tilt.pop(0)
-  angle = random.uniform(0.5, 4)
+  angle = random.uniform(0.5, 3)
 
   im = Image.open(fpath).convert('RGBA')
   white_bg = Image.new('RGBA', im.size, (255,)*4)
@@ -128,7 +134,7 @@ while tilt:
   combined.convert('L').save('tiles/{0}.bmp'.format(word+'.0'))
   rot = im.rotate(-angle)
 
-  angle = random.uniform(0.1, 2.5)
+  angle = random.uniform(0.5, 3)
   rot = im.rotate(-angle)
   combined = Image.composite(rot, white_bg, rot)
   combined.convert('L').save('tiles/{0}.bmp'.format(word+'.1'))

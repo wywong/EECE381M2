@@ -35,7 +35,7 @@ fprintf('\nTraining Neural Network... \n')
 
 %  After you have completed the assignment, change the MaxIter to a larger
 %  value to see how more training helps.
-options = optimset('MaxIter', 200);
+options = optimset('MaxIter', 125);
 
 %  You should also try different values of lambda
 lambda = 0.02;
