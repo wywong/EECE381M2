@@ -3,7 +3,7 @@ imageFiles = dir('tiles/*.bmp');
 X = [];
 y = [];
 
-numFonts = 50;
+numFonts = 77;
 count = 0;
 
 % 1 to 26 represents A to Z
@@ -33,11 +33,11 @@ shuffle = shuffle(randperm(size(shuffle, 1)),:);
 y = shuffle(:, 1);
 X = shuffle(:, 2:end);
 
-yTrain = y(1:0.8*size(y,1),:);
-XTrain = X(1:0.8*size(X,1),:);
+yTrain = y(1:round(0.8*size(y,1)),:);
+XTrain = X(1:round(0.8*size(X,1)),:);
 
-yTest = y(0.8*size(y,1):end,:);
-XTest = X(0.8*size(X,1):end,:);
+yTest = y(round(0.8*size(y,1)):end,:);
+XTest = X(round(0.8*size(X,1)):end,:);
 
 save('nnTrain/train.mat', 'XTrain', 'yTrain');
 save('nnTrain/test.mat', 'XTest', 'yTest');
