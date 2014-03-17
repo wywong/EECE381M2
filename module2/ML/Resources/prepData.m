@@ -22,6 +22,7 @@ for ii = imageFiles'
   y = [y; f];
 
   t = imread(strcat('tiles/', ii.name));
+  t = t(:,:,1);
   t = reshape(t, 1, prod(size(t)));
   bSize = sizeof(t(1,1));
   t = double(t) / (2^(8*bSize) - 1);
