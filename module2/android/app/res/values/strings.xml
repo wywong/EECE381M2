@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
@@ -12,3 +13,19 @@
     <string name="hello_world">Hello world!</string>
 
 </resources>
+=======
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Ctrl F It</string>
+    <string name="camera">Capture Image</string>
+    <string name="confirm">Confirm</string>
+    <string name="retry">Retry</string>
+    <string name="editor">Text Editor</string>
+    <string name="help">Help</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_camera">Capture Text</string>
+    <string name="preview">Preview</string>
+
+</resources>
+>>>>>>> 5aad72843071c6051f8c738f0af46b5d09c8c9ef
