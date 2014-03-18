@@ -19,7 +19,7 @@ public class ProcessingActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_processing);
-		charRecognition();
+		predict();
 	}
 
 	@Override
@@ -34,22 +34,21 @@ public class ProcessingActivity extends Activity {
 	public static final int OUTPUT = 26;
 	public static final int HIDDEN_UNITS = 72;
 
-	public void charRecognition() {
+	public void predict() {
 		double[][] theta1 = parseCSV("sdcard/Ctrl_F_It/theta1.csv", HIDDEN_UNITS, INPUT + 1);
 		double[][] theta2 = parseCSV("sdcard/Ctrl_F_It/theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
-		double[][] input = inputUnroll(parseCSV("sdcard/Ctrl_F_It/a.csv", INPUT_WIDTH, INPUT_WIDTH));
+		double[][] input = inputUnroll(parseCSV("sdcard/Ctrl_F_It/Xtest1.csv", 1, INPUT), 1, INPUT);
+
 		int matchedChar = forwardPropagation(theta1, theta2, input);
-		Log.d("Testing", Integer.toString(matchedChar));
+		Log.d("prediction", Integer.toString(matchedChar));
 	}
 
-	/* forwardPropagation
+	/**
 	 * Applies feed forward propagation within the neural network
-	 * Parameters:
-	 * 		double[][] theta1: 2D array containing the theta values for the hidden layer (size HIDDEN_UNITS x INPUT + 1)
-	 * 		double[][] theta2: 2D array containing the theta values for the hidden layer (size OUTPUT x HIDDEN_UNITS + 1)
-	 * 		double[] input: Unrolled vector of values each representing one pixel of the image (size INPUT x 1)
-	 * Return:
-	 * 		int: The ith character of the alphabet that has the highest calculated propability
+	 * @param theta1 2D array containing the theta values for the hidden layer (size HIDDEN_UNITS x INPUT + 1)
+	 * @param theta2 2D array containing the theta values for the hidden layer (size OUTPUT x HIDDEN_UNITS + 1)
+	 * @param input Unrolled column vector of values each representing one pixel of the image (size INPUT x 1)
+	 * @return The ith character of the alphabet that has the highest matching probability
 	 */
 	public int forwardPropagation(double[][] theta1, double[][] theta2, double[][] input) {
 		SimpleMatrix theta1Array = new SimpleMatrix(theta1);
@@ -80,11 +79,11 @@ public class ProcessingActivity extends Activity {
 		outputArray = theta2Array.mult(h1ArrayWithBias);
 		for(i = 0; i < OUTPUT; i++) {
 			sigmoidVal = 1 / (1 + Math.exp(-outputArray.get(i, 0)));
-			outputArray.set(1, 0, sigmoidVal);
+			outputArray.set(i, 0, sigmoidVal);
 		}
 
 		for(i = 0; i < OUTPUT; i++) {
-			if(outputArray.get(i, 0) > bestMatch) {
+			if(outputArray.get(i, 0) > outputArray.get(bestMatch, 0)) {
 				bestMatch = i;
 			}
 		}
@@ -92,14 +91,12 @@ public class ProcessingActivity extends Activity {
 		return bestMatch + 1;
 	}
 
-	/* parseCSV
+	/**
 	 * Parses a csv file and stores the contents into a 2d double array
-	 * Parameters:
-	 * 		String inFile: Location of the csv file relative to the root directory of the android device
-	 * 		int rows: Number of rows to be parsed
-	 * 		int columns: Number of columns to be parsed
-	 * Return:
-	 * 		double[][]: Array containing the contents of the csv file
+	 * @param inFile Location of the csv file relative to the root directory of the android device
+	 * @param rows Number of rows to be parsed
+	 * @param columns Number of columns to be parsed
+	 * @return Array containing the contents of the csv file
 	 */
 	public double[][] parseCSV(String inFile, int rows, int columns) {
 		double[][] parsedValues = new double[rows][columns];
@@ -134,21 +131,20 @@ public class ProcessingActivity extends Activity {
 		return parsedValues;
 	}
 
-	/* inputUnroll
+	/**
 	 * Unrolls the 2D input matrix into a single column vector
-	 * Parameters:
-	 * 		double[][] input: 2D array of pixel values from the input (size root(INPUT) x root(INPUT))
-	 * 		double inputWidth: The length of the input array
-	 * Return:
-	 * 		double[][]: Unrolled column vector of the input (size INPUT x 1)
+	 * @param input 2D array of pixel values from the input (size INPUT_WIDTH x INPUT_WIDTH)
+	 * @param rows Number of rows in the input array
+	 * @param columns Number of columns in the input array
+	 * @return Unrolled column vector of the input (size INPUT x 1)
 	 */
-	public double[][] inputUnroll(double[][] input) {
+	public double[][] inputUnroll(double[][] input, int rows, int columns) {
 		double[][] unrolledInput = new double[INPUT][1];
 		int i,j;
 		int k = 0;
 
-		for(i = 0; i < INPUT_WIDTH; i++) {
-			for(j = 0; j < INPUT_WIDTH; j++) {
+		for(i = 0; i < rows; i++) {
+			for(j = 0; j < columns; j++) {
 				unrolledInput[k][0] = input[i][j];
 				k++;
 			}
