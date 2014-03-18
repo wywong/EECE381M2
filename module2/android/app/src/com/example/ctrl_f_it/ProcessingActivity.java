@@ -8,6 +8,9 @@ import java.io.IOException;
 import org.ejml.simple.SimpleMatrix;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -15,11 +18,17 @@ import android.view.Menu;
 
 public class ProcessingActivity extends Activity {
 
+	public static final int INPUT_WIDTH = 20;
+	public static final int INPUT = 400;
+	public static final int OUTPUT = 26;
+	public static final int HIDDEN_UNITS = 72;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_processing);
-		predict();
+		char matchedChar = predict("sdcard/Ctrl_F_It/A0.bmp");
+		Log.d("prediction", Character.toString(matchedChar));
 	}
 
 	@Override
@@ -29,18 +38,17 @@ public class ProcessingActivity extends Activity {
 		return true;
 	}
 
-	public static final int INPUT_WIDTH = 20;
-	public static final int INPUT = 400;
-	public static final int OUTPUT = 26;
-	public static final int HIDDEN_UNITS = 72;
-
-	public void predict() {
+	/**
+	 * Predicts the most likely character from the input image
+	 * @param inFile Location of the image file relative to the root directory of the android device
+	 * @return The character that has the highest probability of matching the input
+	 */
+	public char predict(String inFile) {
 		double[][] theta1 = parseCSV("sdcard/Ctrl_F_It/theta1.csv", HIDDEN_UNITS, INPUT + 1);
 		double[][] theta2 = parseCSV("sdcard/Ctrl_F_It/theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
-		double[][] input = inputUnroll(parseCSV("sdcard/Ctrl_F_It/Xtest1.csv", 1, INPUT), 1, INPUT);
+		double[][] input = inputUnroll(bmpToArray(inFile), INPUT_WIDTH, INPUT_WIDTH);
 
-		int matchedChar = forwardPropagation(theta1, theta2, input);
-		Log.d("prediction", Integer.toString(matchedChar));
+		return forwardPropagation(theta1, theta2, input);
 	}
 
 	/**
@@ -48,9 +56,9 @@ public class ProcessingActivity extends Activity {
 	 * @param theta1 2D array containing the theta values for the hidden layer (size HIDDEN_UNITS x INPUT + 1)
 	 * @param theta2 2D array containing the theta values for the hidden layer (size OUTPUT x HIDDEN_UNITS + 1)
 	 * @param input Unrolled column vector of values each representing one pixel of the image (size INPUT x 1)
-	 * @return The ith character of the alphabet that has the highest matching probability
+	 * @return The character that has the highest probability of matching the input
 	 */
-	public int forwardPropagation(double[][] theta1, double[][] theta2, double[][] input) {
+	public char forwardPropagation(double[][] theta1, double[][] theta2, double[][] input) {
 		SimpleMatrix theta1Array = new SimpleMatrix(theta1);
 		SimpleMatrix theta2Array = new SimpleMatrix(theta2);
 		SimpleMatrix inputArray = new SimpleMatrix(input);
@@ -58,7 +66,6 @@ public class ProcessingActivity extends Activity {
 		SimpleMatrix h1Array;
 		SimpleMatrix h1ArrayWithBias = new SimpleMatrix(HIDDEN_UNITS + 1, 1);
 		SimpleMatrix outputArray;
-		int i;
 		double sigmoidVal;
 		int bestMatch = 0;
 
@@ -69,7 +76,7 @@ public class ProcessingActivity extends Activity {
 		//sigmoid(theta1 * input)
 		h1Array = theta1Array.mult(inputArrayWithBias);
 		h1ArrayWithBias.set(0, 0, 1);
-		for(i = 0; i < HIDDEN_UNITS; i++) {
+		for(int i = 0; i < HIDDEN_UNITS; i++) {
 			sigmoidVal = 1 / (1 + Math.exp(-h1Array.get(i, 0)));
 			h1Array.set(i, 0, sigmoidVal);
 		}
@@ -77,18 +84,18 @@ public class ProcessingActivity extends Activity {
 
 		//sigmoid(theta2 * h1)
 		outputArray = theta2Array.mult(h1ArrayWithBias);
-		for(i = 0; i < OUTPUT; i++) {
+		for(int i = 0; i < OUTPUT; i++) {
 			sigmoidVal = 1 / (1 + Math.exp(-outputArray.get(i, 0)));
 			outputArray.set(i, 0, sigmoidVal);
 		}
 
-		for(i = 0; i < OUTPUT; i++) {
+		for(int i = 0; i < OUTPUT; i++) {
 			if(outputArray.get(i, 0) > outputArray.get(bestMatch, 0)) {
 				bestMatch = i;
 			}
 		}
 
-		return bestMatch + 1;
+		return (char)(65 + bestMatch);
 	}
 
 	/**
@@ -104,14 +111,13 @@ public class ProcessingActivity extends Activity {
 		String row;
 		String[] separatedRow;
 		String cvsDelimiter = ",";
-		int i, j;
 
 		try {
 			br = new BufferedReader(new FileReader(inFile));
-			for(i = 0; i < rows; i++ ) {
+			for(int i = 0; i < rows; i++ ) {
 				row = br.readLine();
 				separatedRow = row.split(cvsDelimiter);
-				for(j = 0; j < columns; j++) {
+				for(int j = 0; j < columns; j++) {
 					parsedValues[i][j] = Double.parseDouble(separatedRow[j]);
 				}
 			}
@@ -128,6 +134,7 @@ public class ProcessingActivity extends Activity {
 				}
 			}
 		}
+
 		return parsedValues;
 	}
 
@@ -140,15 +147,47 @@ public class ProcessingActivity extends Activity {
 	 */
 	public double[][] inputUnroll(double[][] input, int rows, int columns) {
 		double[][] unrolledInput = new double[INPUT][1];
-		int i,j;
 		int k = 0;
 
-		for(i = 0; i < rows; i++) {
-			for(j = 0; j < columns; j++) {
+		for(int i = 0; i < rows; i++) {
+			for(int j = 0; j < columns; j++) {
 				unrolledInput[k][0] = input[i][j];
 				k++;
 			}
 		}
+
 		return unrolledInput;
+	}
+
+	/**
+	 * Converts the BMP image into a 2D array
+	 * @param inFile Location of the BMP file relative to the root directory of the android device
+	 * @return Array containing the pixel information of the BMP image (size INPUT_WIDTH x INPUT_WIDTH)
+	 */
+	public double[][] bmpToArray(String inFile) {
+		double[][] imageArray = new double[INPUT_WIDTH][INPUT_WIDTH];
+		Bitmap image = BitmapFactory.decodeFile(inFile);
+
+		for(int yPixel = 0; yPixel < INPUT_WIDTH; yPixel++) {
+			for(int xPixel = 0; xPixel < INPUT_WIDTH; xPixel++) {
+				//xPixel => column of the array, yPixel => row of the array
+				imageArray[yPixel][xPixel] = rgbToGrayscale(image.getPixel(xPixel, yPixel));
+			}
+		}
+
+		return imageArray;
+	}
+
+	/**
+	 * Converts a pixel value into grayscale
+	 * @param pixel Integer value that contains ARGB information
+	 * @return Grayscale value by taking the average of the RGB values
+	 */
+	public double rgbToGrayscale(int pixel) {
+		int R = Color.red(pixel);
+		int G = Color.green(pixel);
+		int B = Color.blue(pixel);
+
+		return (R + G + B) / 3;
 	}
 }
