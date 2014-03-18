@@ -34,7 +34,7 @@ public class ProcessingActivity extends Activity {
     public int[] characterPixelArray;
 
     //String filePath = "/dev/sentence.bmp";
-    String filePath = Environment.getExternalStorageDirectory().getPath() + "/sentence.bmp";
+    String filePath = Environment.getExternalStorageDirectory().getPath() + "/ALPHA.bmp";
     public int startx;
     public int starty = 0;
     
@@ -221,7 +221,8 @@ public class ProcessingActivity extends Activity {
     		characterDimensions = finalCharacterColumns;
     	}
     	
-    	character = Bitmap.createBitmap(finalThresholdImage, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
+    	//character = Bitmap.createBitmap(finalThresholdImage, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
+        character = Bitmap.createBitmap(imageFile, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
         
         addWhiteSpace(whitespaceX, whitespaceY, characterDimensions);
         
