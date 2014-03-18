@@ -30,6 +30,8 @@ for ii = imageFiles'
   X = [X; t];
 end
 
+save('nnTrain/rawdata.mat', 'X', 'y');
+
 % randomize the training set
 shuffle = [y X];
 shuffle = shuffle(randperm(size(shuffle, 1)),:);
