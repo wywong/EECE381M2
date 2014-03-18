@@ -7,7 +7,7 @@ mkdir tiles;
 mkdir tmp;
 
 # execute tileIt python script to create character tiles from the training fonts
-python tileIt.py;
+python tileIt.py strip;
 
 # resize and pad all the tiles to the input size
 mogrify -background white -gravity center -resize 20x20 -extent 20x20 -format bmp tiles/*;

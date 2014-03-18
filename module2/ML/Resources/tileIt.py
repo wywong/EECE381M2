@@ -1,8 +1,10 @@
 import Image
-import string
 import glob
-import re
+import os
 import random
+import re
+import string
+import sys
 
 # get the list of training fonts to be parsed
 images = list(glob.glob('Training_Fonts/*.bmp'))
@@ -46,102 +48,45 @@ while images:
         else:
             rightx = bars.pop(0)
 #        print (leftx, 0, rightx, height)
-        im.crop((leftx, 1, rightx, height-1)).save('tmp/{0}{1}.bmp'.format(l, fonts))
+        stem = 'tmp/{0}{1}'.format(l, fonts)
+        tile = im.crop((leftx, 1, rightx, height-1))
+        tile.save(stem + '.0.bmp')
         leftx = rightx + 1
+
+        # generate slightly tilted images
+        tile = tile.convert('RGBA')
+        white_bg = Image.new('RGBA', tile.size, (255,)*4)
+
+        # left tilt
+        angle = random.uniform(0.5, 1)
+        rot = tile.rotate(angle)
+        combined = Image.composite(rot, white_bg, rot)
+        combined.convert('L').save(stem + '.1.bmp')
+        rot = tile.rotate(-angle)
+
+        # right tilt
+        angle = random.uniform(0.5, 2.5)
+        rot = tile.rotate(-angle)
+        combined = Image.composite(rot, white_bg, rot)
+        combined.convert('L').save(stem + '.2.bmp')
+        rot = tile.rotate(angle)
 
     fonts += 1
 
-# get list of filenames for all the character bitmaps
-tiles = list(glob.glob('tmp/*.bmp'))
 
-# strip excess whitespace surrounding each character
-while tiles:
-    fpath = tiles.pop(0)
-    im = Image.open(fpath).convert('L')
-    pixels = list(im.getdata())
-    width, height = im.size
-    pixels = [pixels[i * width:(i + 1) * width] for i in xrange(height)]
 
-    vbars = []
-    hbars = []
+#
+#    angle = random.uniform(1.5, 3)
+#    rot = im.rotate(angle)
+#    combined = Image.composite(rot, white_bg, rot)
+#    combined.convert('L').save('tmp/{0}.bmp'.format(word+'.2'))
+#    rot = im.rotate(-angle)
+#
+#    angle = random.uniform(1.5, 3)
+#    rot = im.rotate(-angle)
+#    combined = Image.composite(rot, white_bg, rot)
+#    combined.convert('L').save('tmp/{0}.bmp'.format(word+'.3'))
+#    rot = im.rotate(angle)
 
-    for y in range(0, width):
-        vertLine = False
-        for x in range(0, height):
-            if(pixels[x][y] <= white-15):
-                vertLine = False
-                break
-            else:
-                vertLine = True
-        if(vertLine):
-            vbars.append(y)
-
-    for x in range(0, height):
-        horLine = False
-        for y in range(0, width):
-            if(pixels[x][y] <= white-15):
-                horLine = False
-                break
-            else:
-                horLine = True
-        if(horLine):
-            hbars.append(x)
-
-    left = 0
-    right = width
-    top = 0
-    bottom = height
-
-    # print vbars
-    # print hbars
-
-    if(vbars):
-        if vbars[0] == 0:
-            left = vbars.pop(0)
-            while vbars:
-                if (vbars[0] - left) != 1:
-                    right = vbars.pop(0)
-                    break
-                else:
-                    left = vbars.pop(0)
-        else:
-            right = vbars.pop(0)
-
-    if(hbars):
-        if hbars[0] == 0:
-            top = hbars.pop(0)
-            while hbars:
-                if (hbars[0] - top) != 1:
-                    bottom = hbars.pop(0)
-                    break
-                else:
-                    top = hbars.pop(0)
-        else:
-            bottom = hbars.pop(0)
-
-    # print left, right
-    # print top, bottom
-
-    word = re.sub('tmp/|.bmp', '', fpath)
-    im.crop((left, top, right, bottom)).save('tiles/{0}.bmp'.format(word))
-
-# generate slightly tilted images
-tilt = list(glob.glob('tiles/*.bmp'))
-while tilt:
-    fpath = tilt.pop(0)
-    angle = random.uniform(0.5, 3)
-
-    im = Image.open(fpath).convert('RGBA')
-    white_bg = Image.new('RGBA', im.size, (255,)*4)
-    rot = im.rotate(angle)
-    combined = Image.composite(rot, white_bg, rot)
-
-    word = re.sub('tiles/|.bmp', '', fpath)
-
-    combined.convert('L').save('tiles/{0}.bmp'.format(word+'.0'))
-    rot = im.rotate(-angle)
-
-    angle = random.uniform(0.5, 3)
-    rot = im.rotate(-angle)
-    combined = Image.composite(rot, white_bg, rot)
-    combined.convert('L').save('tiles/{0}.bmp'.format(word+'.1'))
+if sys.argv[1] == 'strip':
+    os.system("python stripIt.py")
