@@ -33,7 +33,7 @@ public class ProcessingActivity extends Activity {
     public int width;
     public int[] characterPixelArray;
 
-    String filePath = "/dev/characters.bmp";
+    String filePath = "/dev/sentence.bmp";
     public int startx;
     public int starty = 0;
     
@@ -96,7 +96,10 @@ public class ProcessingActivity extends Activity {
         int wasBlackPixel = 0;
         String characterName;
         int characterNumber = 0;
-
+        
+        int numWhiteColumns = 0;
+        Boolean firstCharacter = false;
+        
         //go through with columns starting at left most column, then if a black pixel is detected, begin storing columns
         //until we encounter a column with no more black pixels.
         for (int x = 0; x < width; x++){
@@ -121,6 +124,15 @@ public class ProcessingActivity extends Activity {
 	        			isCharacter = 1;
 	        			beginningCharacterColumn  = x;
 	        			beginningCharacterRow = y;
+	
+	        			//if the number of white columns is equal or greater than the size of a character (we will have already seen a character)
+	        			//we know that it is a space
+	        			if (firstCharacter == true && numWhiteColumns >= finalCharacterColumns){
+	        				characterName = String.valueOf(characterNumber) + ".bmp";
+		        			createSpaceBitmap(characterName);
+		        			numWhiteColumns = 0;
+		        			characterNumber++;
+	        			}
 	        		}
 	        	}
 	        
@@ -133,13 +145,16 @@ public class ProcessingActivity extends Activity {
 	        			finalCharacterColumns = x - beginningCharacterColumn;
 	        			finalCharacterRows = lastCharacterRow - beginningCharacterRow;
 	        			
-	        			characterName = "char" + String.valueOf(characterNumber) + ".bmp";
+	        			characterName = String.valueOf(characterNumber) + ".bmp";
 	        			
 	        			createCharacterBitmap(characterName);
 	        			characterNumber++;
 	        			lastCharacterRow = 0;
+	        			firstCharacter = true;
 	        		}
-	        		
+	        		else if (wasBlackPixel == 0 && isCharacter == 0 && firstCharacter == true){
+	        			numWhiteColumns++;
+	        		}
 	        	}
 	        	
 	        	
@@ -149,8 +164,8 @@ public class ProcessingActivity extends Activity {
     
     public void createCharacterBitmap(String characterName){
     	
-        int whitespaceX = finalCharacterColumns/2;
         int whitespaceY = (height - finalCharacterRows)/2;
+        int whitespaceX = (height - finalCharacterColumns)/2;
         
         //character = Bitmap.createBitmap(finalCharacterArray, characterBitmapWidth , height, Bitmap.Config.ALPHA_8);
         character = Bitmap.createBitmap(finalThresholdImage, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
@@ -159,10 +174,19 @@ public class ProcessingActivity extends Activity {
         saveCharacterBitmapToFile(characterName);
     }
     
+	public void createSpaceBitmap(String fileName){
+    	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, height, height ); //makes a square character image
+    	Canvas whitespace = new Canvas(charWithWhite);
+        whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE);
+        whitespace.drawBitmap(character, height, height, null);
+        
+        saveCharacterBitmapToFile(fileName);
+	}
+    
     public void addWhiteSpace( int padding_x, int padding_y){
         //charWithWhite = Bitmap.createBitmap(character.getWidth() + padding_x, character.getHeight() + padding_y, Bitmap.Config.ALPHA_8);
         
-    	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, finalCharacterColumns*2, height );
+    	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, height, height ); //makes a square character image
     	Canvas whitespace = new Canvas(charWithWhite);
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE); 
         whitespace.drawBitmap(character, padding_x, padding_y, null);
