@@ -19,7 +19,7 @@ public class ProcessingActivity extends Activity {
 	public Bitmap finalThresholdImage;
     public Bitmap character;
     public Bitmap charWithWhite;
-    
+    public Bitmap scaledImage;
 
     public int beginningCharacterColumn = 0;
     public int lastCharacterColumn = 0;
@@ -37,6 +37,7 @@ public class ProcessingActivity extends Activity {
     public int startx;
     public int starty = 0;
     
+    
 
 
 	@Override
@@ -53,7 +54,7 @@ public class ProcessingActivity extends Activity {
 		return true;
 	}
 	
-	//LOADS THE IMAGE INTO 
+	//LOADS THE IMAGE INTO BITMAP FORMAT
     public void loadImage()
     {  
         imageFile = BitmapFactory.decodeFile(filePath);
@@ -64,10 +65,14 @@ public class ProcessingActivity extends Activity {
 
         ///NEED TO THRESHOLD IMAGES
 		finalThresholdImage = imageFile.copy(imageFile.getConfig(), true );
-        //finalThresholdImage = Bitmap.createBitmap(width, height, Bitmap.Config.ALPHA_8);
+
         Threshold(thresholdValue);
         
+        //LINE DETECTION
+        //int lineVal = 0;
+        //while( detectLine() < imageFile.getHeight() ){
         storeCharacter();
+        //}
         //saveCharacterBitmapToFile( "test.bmp" );
     }
     
@@ -88,6 +93,20 @@ public class ProcessingActivity extends Activity {
 		        }
 		    }
     }
+    
+    public int detectLine(){
+    	//scan rows until a black pixel is found
+    	//we know that this will be the first row 
+    	//don't need to worry about left and right margins as storeCharacters() takes care of it
+    	//keep scanning until we find a row with no black pixels
+    	//create a new image containing a single line
+    	
+    	//NEED TO CHANGE IMAGE VARIABLES OF HEIGHT AND WIDTH
+    	
+    	//returns the last row value 
+    	return 0;
+    }
+    
     
     public void storeCharacter(){
     	//NEED TO STORE WHERE FURTHERS ALONG Y VALUE IS
@@ -163,30 +182,50 @@ public class ProcessingActivity extends Activity {
     }
     
     public void createCharacterBitmap(String characterName){
+    	int whitespaceY;
+    	int whitespaceX;
+    	int characterDimensions;
     	
-        int whitespaceY = (height - finalCharacterRows)/2;
-        int whitespaceX = (height - finalCharacterColumns)/2;
+    	//create the square based on whether the height or width of the character is bigger
+    	if( finalCharacterRows > finalCharacterColumns ){
+            whitespaceY = 0;
+            whitespaceX = (finalCharacterRows - finalCharacterColumns)/2;
+            characterDimensions = finalCharacterRows;
+    	}
+    	else{
+    		whitespaceX = 0;
+    		whitespaceY = (finalCharacterColumns - finalCharacterRows)/2;
+    		characterDimensions = finalCharacterColumns;
+    	}
+    	
+    	character = Bitmap.createBitmap(finalThresholdImage, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
         
-        //character = Bitmap.createBitmap(finalCharacterArray, characterBitmapWidth , height, Bitmap.Config.ALPHA_8);
-        character = Bitmap.createBitmap(finalThresholdImage, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
+        addWhiteSpace(whitespaceX, whitespaceY, characterDimensions);
         
-        addWhiteSpace(whitespaceX, whitespaceY);
+        scaledImage = Bitmap.createScaledBitmap(charWithWhite, 20, 20, false);
+        
         saveCharacterBitmapToFile(characterName);
     }
     
-	public void createSpaceBitmap(String fileName){
-    	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, height, height ); //makes a square character image
-    	Canvas whitespace = new Canvas(charWithWhite);
+	public void createSpaceBitmap(String characterName){
+		//DOESN'T REALLY MATTER THE SIZE, WILL BE RESIZED TO 20X20 ANYWAYS - JUST NEEDS TO BE SQUARE
+		
+    	//charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, height, height ); //makes a square character image
+    	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, finalCharacterRows, finalCharacterRows);
+		Canvas whitespace = new Canvas(charWithWhite);
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE);
-        whitespace.drawBitmap(character, height, height, null);
+        whitespace.drawBitmap(character, finalCharacterRows, finalCharacterRows, null);
         
-        saveCharacterBitmapToFile(fileName);
+        scaledImage = Bitmap.createScaledBitmap(charWithWhite, 20, 20, false);
+        
+        saveCharacterBitmapToFile(characterName);
 	}
     
-    public void addWhiteSpace( int padding_x, int padding_y){
+    public void addWhiteSpace( int padding_x, int padding_y, int imageDimensions){
         //charWithWhite = Bitmap.createBitmap(character.getWidth() + padding_x, character.getHeight() + padding_y, Bitmap.Config.ALPHA_8);
         
-    	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, height, height ); //makes a square character image
+    	//charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, height, height ); //makes a square character image
+    	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, imageDimensions, imageDimensions);
     	Canvas whitespace = new Canvas(charWithWhite);
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE); 
         whitespace.drawBitmap(character, padding_x, padding_y, null);
@@ -204,7 +243,8 @@ public class ProcessingActivity extends Activity {
     	       out = new FileOutputStream(characterFile);
     	       //finalThresholdImage.compress(Bitmap.CompressFormat.PNG, 90, out);
     	       //character.compress(Bitmap.CompressFormat.PNG, 90, out);
-    	       charWithWhite.compress(Bitmap.CompressFormat.PNG, 90, out);
+    	       //charWithWhite.compress(Bitmap.CompressFormat.PNG, 90, out);
+    	       scaledImage.compress(Bitmap.CompressFormat.PNG, 90, out);
     	} catch (Exception e) {
     	    e.printStackTrace();
     	} finally {
