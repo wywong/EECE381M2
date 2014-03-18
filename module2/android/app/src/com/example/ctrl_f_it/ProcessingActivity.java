@@ -22,12 +22,14 @@ public class ProcessingActivity extends Activity {
 	public static final int INPUT = 400;
 	public static final int OUTPUT = 26;
 	public static final int HIDDEN_UNITS = 72;
+	double[][] theta1 = parseCSV("sdcard/Ctrl_F_It/theta1.csv", HIDDEN_UNITS, INPUT + 1);
+	double[][] theta2 = parseCSV("sdcard/Ctrl_F_It/theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_processing);
-		char matchedChar = predict("sdcard/Ctrl_F_It/A0.bmp");
+		char matchedChar = predictChar(theta1, theta2, "sdcard/Ctrl_F_It/A0.0.bmp");
 		Log.d("prediction", Character.toString(matchedChar));
 	}
 
@@ -39,28 +41,16 @@ public class ProcessingActivity extends Activity {
 	}
 
 	/**
-	 * Predicts the most likely character from the input image
+	 * Applies feed forward propagation to predict the character that has the highest probability of matching the input
+	 * @param theta1 2D array containing the theta values for the hidden layer (size HIDDEN_UNITS x INPUT + 1)
+	 * @param theta2 2D array containing the theta values for the hidden layer (size OUTPUT x HIDDEN_UNITS + 1)
 	 * @param inFile Location of the image file relative to the root directory of the android device
 	 * @return The character that has the highest probability of matching the input
 	 */
-	public char predict(String inFile) {
-		double[][] theta1 = parseCSV("sdcard/Ctrl_F_It/theta1.csv", HIDDEN_UNITS, INPUT + 1);
-		double[][] theta2 = parseCSV("sdcard/Ctrl_F_It/theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
-		double[][] input = inputUnroll(bmpToArray(inFile), INPUT_WIDTH, INPUT_WIDTH);
-
-		return forwardPropagation(theta1, theta2, input);
-	}
-
-	/**
-	 * Applies feed forward propagation within the neural network
-	 * @param theta1 2D array containing the theta values for the hidden layer (size HIDDEN_UNITS x INPUT + 1)
-	 * @param theta2 2D array containing the theta values for the hidden layer (size OUTPUT x HIDDEN_UNITS + 1)
-	 * @param input Unrolled column vector of values each representing one pixel of the image (size INPUT x 1)
-	 * @return The character that has the highest probability of matching the input
-	 */
-	public char forwardPropagation(double[][] theta1, double[][] theta2, double[][] input) {
+	public char predictChar(double[][] theta1, double[][] theta2, String inFile) {
 		SimpleMatrix theta1Array = new SimpleMatrix(theta1);
 		SimpleMatrix theta2Array = new SimpleMatrix(theta2);
+		double[][] input = inputUnroll(bmpToArray(inFile), INPUT_WIDTH, INPUT_WIDTH);
 		SimpleMatrix inputArray = new SimpleMatrix(input);
 		SimpleMatrix inputArrayWithBias = new SimpleMatrix(INPUT + 1, 1);
 		SimpleMatrix h1Array;
