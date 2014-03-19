@@ -2,8 +2,8 @@
 clear ; close all; clc
 
 %% Setup the parameters you will use for this exercise
-input_layer_size  = 400;  % 20x20 Input Images of Digits
-hidden_layer_size = 72;   % hidden units
+input_layer_size  = 8*8;  % 20x20 Input Images of Digits
+hidden_layer_size = 48;   % hidden units
 num_labels = 26;          % A to Z , 1 to 26
 
 load('train.mat');

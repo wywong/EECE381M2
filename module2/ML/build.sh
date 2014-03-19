@@ -8,7 +8,7 @@ mkdir tiles;
 python tileIt.py;
 
 # resize and pad all the tiles to the input size
-mogrify -background white -gravity center -resize 20x20 -extent 20x20 -format bmp tiles/*;
+mogrify -background white -gravity center -resize 8x8 -extent 8x8 -format bmp tiles/*;
 
 # prepare the data to be used for training and testing
 # train.mat and test.mat are generated

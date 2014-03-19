@@ -7,6 +7,7 @@ imageFiles = dir('photo/*.bmp');
 
 for ii = imageFiles'
   X = imread(strcat('photo/', ii.name));
+  X = X(:, :, 1);
   X = reshape(X, 1, prod(size(X)));
   bSize = sizeof(X(1,1));
   X = double(X) / (2^(8*bSize) - 1);
