@@ -14,6 +14,8 @@ let = list(string.ascii_uppercase)
 
 fonts = 0
 
+rawTiles = []
+
 # cut up font images into tiles
 while images:
     im = Image.open(images.pop(0)).convert('L')
@@ -48,9 +50,9 @@ while images:
         else:
             rightx = bars.pop(0)
 #        print (leftx, 0, rightx, height)
-        stem = 'tmp/{0}{1}'.format(l, fonts)
+        tname = '{0}{1}'.format(l, fonts)
         tile = im.crop((leftx, 1, rightx, height-1))
-        tile.save(stem + '.0.bmp')
+        rawTiles.append((tile.copy(), tname + '.0'))
         leftx = rightx + 1
 
         # generate slightly tilted images
@@ -59,34 +61,86 @@ while images:
 
         # left tilt
         angle = random.uniform(0.5, 1)
-        rot = tile.rotate(angle)
+        rot = tile.rotate(angle, Image.BILINEAR, expand=0)
         combined = Image.composite(rot, white_bg, rot)
-        combined.convert('L').save(stem + '.1.bmp')
-        rot = tile.rotate(-angle)
+        rawTiles.append((combined.convert('L').copy(), tname + '.1'))
+        rot = tile.rotate(-angle, Image.BILINEAR, expand=0)
 
         # right tilt
         angle = random.uniform(0.5, 2.5)
-        rot = tile.rotate(-angle)
+        rot = tile.rotate(-angle, Image.BILINEAR, expand=0)
         combined = Image.composite(rot, white_bg, rot)
-        combined.convert('L').save(stem + '.2.bmp')
-        rot = tile.rotate(angle)
+        rawTiles.append((combined.convert('L').copy(), tname + '.2'))
+        rot = tile.rotate(angle, Image.BILINEAR, expand=0)
 
     fonts += 1
 
+strippedTiles = []
+# strip excess whitespace surrounding each character
+while rawTiles:
+    tile, tname = rawTiles.pop(0)
+    pixels = list(tile.getdata())
+    width, height = tile.size
+    pixels = [pixels[i * width:(i + 1) * width] for i in xrange(height)]
 
+    vbars = []
+    hbars = []
 
-#
-#    angle = random.uniform(1.5, 3)
-#    rot = im.rotate(angle)
-#    combined = Image.composite(rot, white_bg, rot)
-#    combined.convert('L').save('tmp/{0}.bmp'.format(word+'.2'))
-#    rot = im.rotate(-angle)
-#
-#    angle = random.uniform(1.5, 3)
-#    rot = im.rotate(-angle)
-#    combined = Image.composite(rot, white_bg, rot)
-#    combined.convert('L').save('tmp/{0}.bmp'.format(word+'.3'))
-#    rot = im.rotate(angle)
+    for y in range(0, width):
+        vertLine = False
+        for x in range(0, height):
+            if(pixels[x][y] <= white-15):
+                vertLine = False
+                break
+            else:
+                vertLine = True
+        if(vertLine):
+            vbars.append(y)
 
-if sys.argv[1] == 'strip':
-    os.system("python stripIt.py")
+    for x in range(0, height):
+        horLine = False
+        for y in range(0, width):
+            if(pixels[x][y] <= white-15):
+                horLine = False
+                break
+            else:
+                horLine = True
+        if(horLine):
+            hbars.append(x)
+
+    left = 0
+    right = width
+    top = 0
+    bottom = height
+
+    # print vbars
+    # print hbars
+
+    if(vbars):
+        if vbars[0] == 0:
+            left = vbars.pop(0)
+            while vbars:
+                if (vbars[0] - left) != 1:
+                    right = vbars.pop(0)
+                    break
+                else:
+                    left = vbars.pop(0)
+        else:
+            right = vbars.pop(0)
+
+    if(hbars):
+        if hbars[0] == 0:
+            top = hbars.pop(0)
+            while hbars:
+                if (hbars[0] - top) != 1:
+                    bottom = hbars.pop(0)
+                    break
+                else:
+                    top = hbars.pop(0)
+        else:
+            bottom = hbars.pop(0)
+
+    # print left, right
+    # print top, bottom
+
+    tile.crop((left, top, right, bottom)).save('tiles/{0}.bmp'.format(tname))
