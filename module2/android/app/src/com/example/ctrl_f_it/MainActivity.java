@@ -9,13 +9,14 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+	
+	public static String imageCaptureFlag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -46,6 +47,7 @@ public class MainActivity extends Activity {
                 return super.onOptionsItemSelected(item);
         }
     }
+    
     public void openCamera(){
     	Intent intent = new Intent(this, camActivity.class);
     	startActivity(intent);
@@ -55,14 +57,17 @@ public class MainActivity extends Activity {
     	Toast t = Toast.makeText(getApplicationContext(), "I would now call the editor function", Toast.LENGTH_LONG);
     	t.show();
     }
+    
     public void openHelp(){
     	Toast t = Toast.makeText(getApplicationContext(), "I would now call the help function", Toast.LENGTH_LONG);
     	t.show();
     }
+    
     public void openSettings(){
     	Toast t = Toast.makeText(getApplicationContext(), "I would now call the settings function", Toast.LENGTH_LONG);
     	t.show();
     }
+    
     public void openProcessing(){
     	Intent intent = new Intent(this, ProcessingActivity.class);
     	startActivity(intent);

@@ -41,7 +41,7 @@ public class ProcessingActivity extends Activity {
     public int[] characterPixelArray;
 
     //String filePath = "/dev/sentence.bmp";
-    String filePath = Environment.getExternalStorageDirectory().getPath() + "/ALPHA.bmp";
+    String filePath = camActivity.filePath;
     public int startx;
     public int starty = 0;
     

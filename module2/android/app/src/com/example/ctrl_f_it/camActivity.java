@@ -21,7 +21,6 @@ import android.widget.Toast;
 public class camActivity extends Activity {
 	public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
 	public static final int MEDIA_TYPE_IMAGE = 1;
-	 
 	
 	private Uri fileUri;
 	
@@ -97,6 +96,7 @@ public class camActivity extends Activity {
 	  * Delete most recently captured image
 	  */
 	 private void deleteImage() {
+		 imgPreview.setVisibility(View.GONE);
 		 File file = new File(fileUri.getPath());
 		 boolean deleted = file.delete();
 	 }
@@ -128,6 +128,8 @@ public class camActivity extends Activity {
 	 private void previewCapturedImage() {
         try { 
             imgPreview.setVisibility(View.VISIBLE);
+            btnConfirm.setVisibility(View.VISIBLE);
+            btnRetry.setVisibility(View.VISIBLE);
 
             // bitmap factory
             BitmapFactory.Options options = new BitmapFactory.Options();
