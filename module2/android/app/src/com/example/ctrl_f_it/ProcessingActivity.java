@@ -1,7 +1,9 @@
 package com.example.ctrl_f_it;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Vector;
@@ -14,6 +16,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 
@@ -27,7 +30,7 @@ public class ProcessingActivity extends Activity {
     public Bitmap character;
     public Bitmap charWithWhite;
     public Bitmap scaledImage;
-    public Bitmap referenceSpaceBitmap;
+    public Bitmap referenceSpace;
 
     public int beginningCharacterColumn = 0;
     public int lastCharacterColumn = 0;
@@ -46,25 +49,21 @@ public class ProcessingActivity extends Activity {
     public int startx;
     public int starty = 0;
     
-	public static final int INPUT_WIDTH = 20;
-	public static final int INPUT = 400;
+	public static final int INPUT_WIDTH = 8;
+	public static final int INPUT = 64;
 	public static final int OUTPUT = 26;
-	public static final int HIDDEN_UNITS = 72;
+	public static final int HIDDEN_UNITS = 48;
 	double[][] theta1 = parseCSV("sdcard/Ctrl_F_It/theta1.csv", HIDDEN_UNITS, INPUT + 1);
 	double[][] theta2 = parseCSV("sdcard/Ctrl_F_It/theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
-	public static final int GRAY_CONSTANT = Color.LTGRAY;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_processing);
-		
 		loadImage();
-		filter();
 		createReferenceSpace();
 		
 		bitmapToText();
-		
 		for(int i = 0; i < text.size(); i++) {
 			Log.d("prediction", Character.toString(text.get(i)));
 		}
@@ -97,6 +96,10 @@ public class ProcessingActivity extends Activity {
 		double sigmoidVal;
 		int bestMatch = 0;
 
+		for(int i = 0; i < INPUT; i++) {
+			Log.d("image", Double.toString(input[i][0]));
+		}
+		
 		//Initialize input array to include the bias value
 		inputArrayWithBias.set(0, 0, 1);
 		inputArrayWithBias.insertIntoThis(1, 0, inputArray);
@@ -177,8 +180,8 @@ public class ProcessingActivity extends Activity {
 		double[][] unrolledInput = new double[INPUT][1];
 		int k = 0;
 
-		for(int i = 0; i < rows; i++) {
-			for(int j = 0; j < columns; j++) {
+		for(int j = 0; j < columns; j++) {
+			for(int i = 0; i < rows; i++) {
 				unrolledInput[k][0] = input[i][j];
 				k++;
 			}
@@ -189,7 +192,7 @@ public class ProcessingActivity extends Activity {
 
 	/**
 	 * Converts the BMP image into a 2D array
-	 * @param image Bitmap image to be converted
+	 * @param image Image to be converted
 	 * @return Array containing the pixel information of the BMP image (size INPUT_WIDTH x INPUT_WIDTH)
 	 */
 	public double[][] bmpToArray(Bitmap image) {
@@ -198,7 +201,7 @@ public class ProcessingActivity extends Activity {
 		for(int yPixel = 0; yPixel < INPUT_WIDTH; yPixel++) {
 			for(int xPixel = 0; xPixel < INPUT_WIDTH; xPixel++) {
 				//xPixel => column of the array, yPixel => row of the array
-				imageArray[yPixel][xPixel] = rgbToGrayscale(image.getPixel(xPixel, yPixel))/255;
+				imageArray[yPixel][xPixel] = rgbToGrayscale(image.getPixel(xPixel, yPixel)) / 255;
 			}
 		}
 
@@ -389,33 +392,36 @@ public class ProcessingActivity extends Activity {
         
         addWhiteSpace(whitespaceX, whitespaceY, characterDimensions);
         
-        scaledImage = Bitmap.createScaledBitmap(charWithWhite, 20, 20, false);
+        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
         
         processedCharacters.add(scaledImage);
     }
     
 	public void createSpaceBitmap(String characterName){
-		//DOESN'T REALLY MATTER THE SIZE, WILL BE RESIZED TO 20X20 ANYWAYS - JUST NEEDS TO BE SQUARE
+		//DOESN'T REALLY MATTER THE SIZE, WILL BE RESIZED TO INPUT_WIDTHXINPUT_WIDTH ANYWAYS - JUST NEEDS TO BE SQUARE
 		
     	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, finalCharacterRows, finalCharacterRows);
 		Canvas whitespace = new Canvas(charWithWhite);
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE);
         whitespace.drawBitmap(character, finalCharacterRows, finalCharacterRows, null);
         
-        scaledImage = Bitmap.createScaledBitmap(charWithWhite, 20, 20, false);
+        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
         
         processedCharacters.add(scaledImage);
 	}
-	
+    
 	public void createReferenceSpace(){
+		//DOESN'T REALLY MATTER THE SIZE, WILL BE RESIZED TO INPUT_WIDTHXINPUT_WIDTH ANYWAYS - JUST NEEDS TO BE SQUARE
+		
     	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, finalCharacterRows, finalCharacterRows);
 		Canvas whitespace = new Canvas(charWithWhite);
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE);
         whitespace.drawBitmap(character, finalCharacterRows, finalCharacterRows, null);
         
-        referenceSpaceBitmap = Bitmap.createScaledBitmap(charWithWhite, 20, 20, false);	
+        referenceSpace = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
 	}
-    
+	
+	
     public void addWhiteSpace( int padding_x, int padding_y, int imageDimensions){        
     	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, imageDimensions, imageDimensions);
     	Canvas whitespace = new Canvas(charWithWhite);
@@ -425,28 +431,36 @@ public class ProcessingActivity extends Activity {
     
     public void bitmapToText() {
     	for(int i = 0; i < processedCharacters.size(); i++) {
-    		if(referenceSpaceBitmap.sameAs(processedCharacters.get(i))) {
+    		Bitmap img = processedCharacters.get(i);
+    		if(referenceSpace.sameAs(img)) {
     			text.add(' ');
     		} else {
-    			text.add(predictChar(theta1, theta2, processedCharacters.get(i)));
+    			text.add(predictChar(theta1, theta2, img));
     		}
     	}
     }
+      
 
-    public void filter() {
-    	for(int i = 0; i < processedCharacters.size(); i++) {
-    		Bitmap img = processedCharacters.get(i);
-			for (int y = 0; y < img.getHeight(); y++)
-		    {
-		        for (int x = 0; x < img.getWidth() ; x++)
-		        {
-		            int c = img.getPixel(x, y);
-		            
-					if (c >= GRAY_CONSTANT){	
-		            	img.setPixel(x, y, Color.WHITE);
-					}
-		        }
-		    }
+    public void saveCharacterBitmapToFile( String name){
+    	FileOutputStream out = null;
+    	
+    	File dir = Environment.getExternalStorageDirectory();
+    	
+    	File characterFile = new File(dir, name );
+    	
+    	try {
+    	       out = new FileOutputStream(characterFile);
+    	       //finalThresholdImage.compress(Bitmap.CompressFormat.PNG, 90, out);
+    	       //character.compress(Bitmap.CompressFormat.PNG, 90, out);
+    	       //charWithWhite.compress(Bitmap.CompressFormat.PNG, 90, out);
+    	       scaledImage.compress(Bitmap.CompressFormat.PNG, 90, out);
+    	} catch (Exception e) {
+    	    e.printStackTrace();
+    	} finally {
+    	       try{
+    	           out.close();
+    	       } catch(Throwable ignore) {}
     	}
     }
+	
 }
