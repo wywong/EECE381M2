@@ -44,7 +44,7 @@ public class ProcessingActivity extends Activity {
     public int width;
     public int[] characterPixelArray;
 
-    String filePath = "sdcard/Pictures/Ctrl_F_It/ALPHA.bmp";
+    String filePath = "sdcard/Pictures/Ctrl_F_It/handwritten.bmp";
     //String filePath = camActivity.filePath;
     public int startx;
     public int starty = 0;
@@ -55,6 +55,7 @@ public class ProcessingActivity extends Activity {
 	public static final int HIDDEN_UNITS = 48;
 	double[][] theta1 = parseCSV("sdcard/Ctrl_F_It/theta1.csv", HIDDEN_UNITS, INPUT + 1);
 	double[][] theta2 = parseCSV("sdcard/Ctrl_F_It/theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
+	public static final int GRAY_CONSTANT = 0xFF8C8C8C;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +63,7 @@ public class ProcessingActivity extends Activity {
 		setContentView(R.layout.activity_processing);
 		loadImage();
 		createReferenceSpace();
-		
+		filter();
 		bitmapToText();
 		for(int i = 0; i < text.size(); i++) {
 			Log.d("prediction", Character.toString(text.get(i)));
@@ -228,9 +229,7 @@ public class ProcessingActivity extends Activity {
         
     	height = imageFile.getHeight();
 		width = imageFile.getWidth();
-		//int thresholdValue = Color.LTGRAY;
-		int thresholdValue = 0xff989695;
-		//int thresholdValue = 0xff646464;
+		int thresholdValue = 0xff7f7a7a;
 		
         ///NEED TO THRESHOLD IMAGES
 		finalThresholdImage = imageFile.copy(imageFile.getConfig(), true );
@@ -439,7 +438,37 @@ public class ProcessingActivity extends Activity {
     		}
     	}
     }
-      
+    
+    public void filter() {
+    	for(int i = 0; i < processedCharacters.size(); i++) {
+    		Bitmap img = processedCharacters.get(i);
+    		for (int y = 0; y < img.getHeight() ; y++)
+		    {
+		        for (int x = 0; x < img.getWidth() ; x++)
+		        {
+		            int c = img.getPixel(x, y);
+		            
+					if (c >= GRAY_CONSTANT){	
+		            	img.setPixel(x, y, Color.WHITE);
+					}
+		        }
+		    }
+        	FileOutputStream out = null;
+        	File dir = Environment.getExternalStorageDirectory();
+        	File characterFile = new File(dir, Integer.toString(i) + ".bmp");
+        	try {
+     	       out = new FileOutputStream(characterFile);
+     	       img.compress(Bitmap.CompressFormat.PNG, 90, out);
+        	} catch (Exception e) {
+        		e.printStackTrace();
+        	} finally {
+     	       try{
+     	           out.close();
+     	       } catch(Throwable ignore) {}
+     	}
+    		//saveCharacterBitmapToFile(Integer.toString(i) + ".bmp");
+    	}
+    }
 
     public void saveCharacterBitmapToFile( String name){
     	FileOutputStream out = null;
@@ -462,5 +491,4 @@ public class ProcessingActivity extends Activity {
     	       } catch(Throwable ignore) {}
     	}
     }
-	
 }
