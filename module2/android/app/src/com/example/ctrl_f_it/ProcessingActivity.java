@@ -40,13 +40,12 @@ public class ProcessingActivity extends Activity {
     public int width;
     public int[] characterPixelArray;
 
-    //String filePath = "/dev/sentence.bmp";
     String filePath = camActivity.filePath;
     public int startx;
     public int starty = 0;
     
 	public static final int INPUT_WIDTH = 8;
-	public static final int INPUT = 64;
+	public static final int INPUT = INPUT_WIDTH * INPUT_WIDTH;
 	public static final int OUTPUT = 26;
 	public static final int HIDDEN_UNITS = 48;
 	double[][] theta1 = parseCSV("sdcard/Ctrl_F_It/theta1.csv", HIDDEN_UNITS, INPUT + 1);
@@ -384,20 +383,20 @@ public class ProcessingActivity extends Activity {
         
         addWhiteSpace(whitespaceX, whitespaceY, characterDimensions);
         
-        scaledImage = Bitmap.createScaledBitmap(charWithWhite, 20, 20, false);
+        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
         
         saveCharacterBitmapToFile(characterName);
     }
     
 	public void createSpaceBitmap(String characterName){
-		//DOESN'T REALLY MATTER THE SIZE, WILL BE RESIZED TO 20X20 ANYWAYS - JUST NEEDS TO BE SQUARE
+		//DOESN'T REALLY MATTER THE SIZE, WILL BE RESIZED TO INPUT_WIDTHXINPUT_WIDTH ANYWAYS - JUST NEEDS TO BE SQUARE
 		
     	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, finalCharacterRows, finalCharacterRows);
 		Canvas whitespace = new Canvas(charWithWhite);
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE);
         whitespace.drawBitmap(character, finalCharacterRows, finalCharacterRows, null);
         
-        scaledImage = Bitmap.createScaledBitmap(charWithWhite, 20, 20, false);
+        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
         
         saveCharacterBitmapToFile(characterName);
 	}

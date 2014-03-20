@@ -16,3 +16,5 @@
 **/proguard
 *_bsp
 .metadata
+.qsys_edit
+db

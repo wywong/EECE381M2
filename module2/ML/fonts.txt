@@ -1,0 +1,77 @@
+Agency FB
+Andalus
+Angsana New
+Aparajita
+Arabic Typesetting
+Arial
+Arial Black
+Baskerville Old Face
+Batang
+Bell MT
+Berlin Sans FB
+Bodoni MT
+Book Antiqua
+Bookman Old Style
+Britannic Bold
+Browallia New
+Calibri
+Californian FB
+Calisto MT
+Cambria
+Candara
+Capture
+Centaur
+Century
+Century Gothic
+Comic Sans MS
+Consolas
+Constantia
+Copperplate Gothic Light
+Corbel
+Cordia New
+Courier New
+DaunPenh
+David
+DilleniaUPC
+DINPro-Black
+DokChampa
+Dotum
+Ebrima
+Eras Medium ITC
+Estrangelo Edessa
+Euphemia
+Eurostile
+Footlight MT Light
+Franklin Gothic Book
+FrankRuehl
+FreesiaUPC
+Garamond
+Gautami
+Georgia
+Gill Sans MT
+Gisha
+Goudy Old Style
+Gulim
+HelveticaNeueLT Pro 55 Roman
+High Tower Text
+Impact
+Iskoola Pota
+JasmineUPC
+Javanese Text
+KaiTi
+Kalinga
+Kartika
+Khmer UI
+Kokila
+Latha
+Leelawadee
+Levenim MT
+LilyUPC
+Lucida Console
+Nimala UI
+Palatino Linotype
+Perpetua
+Tahoma
+Times New Roman
+Trebuchet MS
+Verdana
