@@ -45,10 +45,10 @@ public class ProcessingActivity extends Activity {
     public int startx;
     public int starty = 0;
     
-	public static final int INPUT_WIDTH = 20;
-	public static final int INPUT = 400;
+	public static final int INPUT_WIDTH = 8;
+	public static final int INPUT = 64;
 	public static final int OUTPUT = 26;
-	public static final int HIDDEN_UNITS = 72;
+	public static final int HIDDEN_UNITS = 48;
 	double[][] theta1 = parseCSV("sdcard/Ctrl_F_It/theta1.csv", HIDDEN_UNITS, INPUT + 1);
 	double[][] theta2 = parseCSV("sdcard/Ctrl_F_It/theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
 
@@ -56,8 +56,8 @@ public class ProcessingActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_processing);
-		loadImage();
-		char matchedChar = predictChar(theta1, theta2, "sdcard/Ctrl_F_It/A0.0.bmp");
+		//loadImage();
+		char matchedChar = predictChar(theta1, theta2, "sdcard/Ctrl_F_It/A0.bmp");
 		Log.d("prediction", Character.toString(matchedChar));
 	}
 
@@ -87,6 +87,10 @@ public class ProcessingActivity extends Activity {
 		double sigmoidVal;
 		int bestMatch = 0;
 
+		for(int i = 0; i < INPUT; i++) {
+			Log.d("image", Double.toString(input[i][0]));
+		}
+		
 		//Initialize input array to include the bias value
 		inputArrayWithBias.set(0, 0, 1);
 		inputArrayWithBias.insertIntoThis(1, 0, inputArray);
@@ -167,8 +171,8 @@ public class ProcessingActivity extends Activity {
 		double[][] unrolledInput = new double[INPUT][1];
 		int k = 0;
 
-		for(int i = 0; i < rows; i++) {
-			for(int j = 0; j < columns; j++) {
+		for(int j = 0; j < columns; j++) {
+			for(int i = 0; i < rows; i++) {
 				unrolledInput[k][0] = input[i][j];
 				k++;
 			}
@@ -189,7 +193,7 @@ public class ProcessingActivity extends Activity {
 		for(int yPixel = 0; yPixel < INPUT_WIDTH; yPixel++) {
 			for(int xPixel = 0; xPixel < INPUT_WIDTH; xPixel++) {
 				//xPixel => column of the array, yPixel => row of the array
-				imageArray[yPixel][xPixel] = rgbToGrayscale(image.getPixel(xPixel, yPixel));
+				imageArray[yPixel][xPixel] = rgbToGrayscale(image.getPixel(xPixel, yPixel))/255;
 			}
 		}
 
