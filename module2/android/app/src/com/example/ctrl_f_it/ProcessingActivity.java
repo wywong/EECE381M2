@@ -16,7 +16,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 
@@ -44,7 +43,7 @@ public class ProcessingActivity extends Activity {
     public int width;
     public int[] characterPixelArray;
 
-    String filePath = "sdcard/Pictures/Ctrl_F_It/handwritten.bmp";
+    String filePath = "sdcard/Pictures/Ctrl_F_It/sentence1.bmp";
     //String filePath = camActivity.filePath;
     public int startx;
     public int starty = 0;
@@ -55,7 +54,6 @@ public class ProcessingActivity extends Activity {
 	public static final int HIDDEN_UNITS = 48;
 	double[][] theta1 = parseCSV("sdcard/Ctrl_F_It/theta1.csv", HIDDEN_UNITS, INPUT + 1);
 	double[][] theta2 = parseCSV("sdcard/Ctrl_F_It/theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
-	public static final int GRAY_CONSTANT = 0xFF8C8C8C;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +61,7 @@ public class ProcessingActivity extends Activity {
 		setContentView(R.layout.activity_processing);
 		loadImage();
 		createReferenceSpace();
-		filter();
+		preProcess();
 		bitmapToText();
 		for(int i = 0; i < text.size(); i++) {
 			Log.d("prediction", Character.toString(text.get(i)));
@@ -77,8 +75,21 @@ public class ProcessingActivity extends Activity {
 		return true;
 	}
 
+	/**
+	 * Iterates through the processedCharacters vector and applies all of the pre-processing before the actual recognition
+	 */
+    public void preProcess() {
+    	for(int i = 0; i < processedCharacters.size(); i++) {
+    		Bitmap img = processedCharacters.get(i);
+    		otsuFilter(img);
+    		
+    		bmpToFile(img, "sdcard/Ctrl_F_It/Filter/" + Integer.toString(i) + ".bmp");
+
+    	}
+    }
+    
     /**
-     * Iterates through the processedCharacters vector and stores the predicted character in the text vector
+     * Iterates through the processedCharacters vector and applies the recognition algorithm, storing the result into the text vector
      */
     public void bitmapToText() {
     	for(int i = 0; i < processedCharacters.size(); i++) {
@@ -210,10 +221,10 @@ public class ProcessingActivity extends Activity {
 	 * @return Array containing the pixel intensities of the BMP image (size INPUT_WIDTH x INPUT_WIDTH)
 	 */
 	public double[][] bmpToArray(Bitmap image) {
-		double[][] imageArray = new double[INPUT_WIDTH][INPUT_WIDTH];
+		double[][] imageArray = new double[image.getHeight()][image.getWidth()];
 
-		for(int yPixel = 0; yPixel < INPUT_WIDTH; yPixel++) {
-			for(int xPixel = 0; xPixel < INPUT_WIDTH; xPixel++) {
+		for(int yPixel = 0; yPixel < image.getHeight(); yPixel++) {
+			for(int xPixel = 0; xPixel < image.getWidth(); xPixel++) {
 				//xPixel => column of the array, yPixel => row of the array
 				imageArray[yPixel][xPixel] = rgbToGrayscale(image.getPixel(xPixel, yPixel)) / 255;
 			}
@@ -227,14 +238,106 @@ public class ProcessingActivity extends Activity {
 	 * @param pixel Integer value that contains ARGB information
 	 * @return Grayscale value by taking the average of the RGB values
 	 */
-	public double rgbToGrayscale(int pixel) {
+	public int rgbToGrayscale(int pixel) {
 		int R = Color.red(pixel);
 		int G = Color.green(pixel);
 		int B = Color.blue(pixel);
-
-		return (R + G + B) / 3;
+		double grayscaleVal = (R + G + B) / 3.0;
+		
+		return (int)grayscaleVal;
 	}
 	
+	/**
+	 * Applies the Otsu filtering algorithm to binarize the input image
+	 * @param image Image to be filtered
+	 */
+	public void otsuFilter(Bitmap image) {
+		int[] histogram = new int[256];
+		int grayscaleVal;
+		int total = image.getHeight() * image.getWidth();
+		double sum = 0;
+		double sumBG = 0;
+		double weightBG = 0;
+		double weightFG = 0;
+		double meanBG;
+		double meanFG;
+		double betweenVariance;
+		double maxVariance = 0;
+		int threshold = 0;
+		
+		//Create a histogram of the number of pixels for each grayscale value
+		for(int yPixel = 0; yPixel < image.getHeight(); yPixel++) {
+			for(int xPixel = 0; xPixel < image.getWidth(); xPixel++) {
+				grayscaleVal = rgbToGrayscale(image.getPixel(xPixel, yPixel));
+				histogram[grayscaleVal]++;
+			}
+		}
+		
+		//Total grayscale value
+		for(int i = 0; i < 256; i++) {
+			sum += i * histogram[i];
+		}
+		
+		for(int i = 0; i < 256; i++) {
+			//Weight of background, continues to next iteration if 0
+			weightBG += histogram[i];
+			if(weightBG == 0) continue;
+			
+			//Weight of foreground, breaks the loop since all later foreground weights will also be 0
+			weightFG = total - weightBG;
+			if(weightFG == 0) break;
+			
+			sumBG += i * histogram[i];
+			
+			//Mean grayscale of background
+			meanBG = sumBG / weightBG;
+			//Mean grayscale of foreground
+			meanFG = (sum - sumBG) / weightFG;
+			
+			//Between class variance
+			betweenVariance = weightBG * weightFG * (meanBG - meanFG) * (meanBG - meanFG);
+			
+			//Records new threshold value if there is a new maximum between class variance
+			if(betweenVariance > maxVariance) {
+				maxVariance = betweenVariance;
+				threshold = i;
+			}
+		}
+		
+		//Actual thresholding of image
+		for(int yPixel = 0; yPixel < image.getHeight(); yPixel++) {
+			for(int xPixel = 0; xPixel < image.getWidth(); xPixel++) {
+				grayscaleVal = rgbToGrayscale(image.getPixel(xPixel, yPixel));
+
+				if(grayscaleVal >= threshold) {
+					image.setPixel(xPixel, yPixel, Color.WHITE);
+				} else {
+					image.setPixel(xPixel, yPixel, Color.BLACK);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Writes the bitmap image to the device's file system
+	 * @param image The image to be written, will be saved as a .png
+	 * @param filepath Filepath relative to the device's root directory, eg. /sdcard/...
+	 */
+	public void bmpToFile(Bitmap image, String filepath) {
+		FileOutputStream out = null;
+		File fileName = new File(filepath);
+		try {
+			out = new FileOutputStream(fileName);
+			image.compress(Bitmap.CompressFormat.PNG, 100, out);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try{
+				out.close();
+			} catch(Throwable ignore) {}
+		}
+	}
+
 	//LOADS THE IMAGE INTO BITMAP FORMAT
     public void loadImage()
     {  
@@ -438,57 +541,5 @@ public class ProcessingActivity extends Activity {
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE); 
         whitespace.drawBitmap(character, padding_x, padding_y, null);
     }
-    
-    public void filter() {
-    	for(int i = 0; i < processedCharacters.size(); i++) {
-    		Bitmap img = processedCharacters.get(i);
-    		for (int y = 0; y < img.getHeight() ; y++)
-		    {
-		        for (int x = 0; x < img.getWidth() ; x++)
-		        {
-		            int c = img.getPixel(x, y);
-		            
-					if (c >= GRAY_CONSTANT){	
-		            	img.setPixel(x, y, Color.WHITE);
-					}
-		        }
-		    }
-        	FileOutputStream out = null;
-        	File dir = Environment.getExternalStorageDirectory();
-        	File characterFile = new File(dir, Integer.toString(i) + ".bmp");
-        	try {
-     	       out = new FileOutputStream(characterFile);
-     	       img.compress(Bitmap.CompressFormat.PNG, 90, out);
-        	} catch (Exception e) {
-        		e.printStackTrace();
-        	} finally {
-     	       try{
-     	           out.close();
-     	       } catch(Throwable ignore) {}
-     	}
-    		//saveCharacterBitmapToFile(Integer.toString(i) + ".bmp");
-    	}
-    }
 
-    public void saveCharacterBitmapToFile( String name){
-    	FileOutputStream out = null;
-    	
-    	File dir = Environment.getExternalStorageDirectory();
-    	
-    	File characterFile = new File(dir, name );
-    	
-    	try {
-    	       out = new FileOutputStream(characterFile);
-    	       //finalThresholdImage.compress(Bitmap.CompressFormat.PNG, 90, out);
-    	       //character.compress(Bitmap.CompressFormat.PNG, 90, out);
-    	       //charWithWhite.compress(Bitmap.CompressFormat.PNG, 90, out);
-    	       scaledImage.compress(Bitmap.CompressFormat.PNG, 90, out);
-    	} catch (Exception e) {
-    	    e.printStackTrace();
-    	} finally {
-    	       try{
-    	           out.close();
-    	       } catch(Throwable ignore) {}
-    	}
-    }
 }
