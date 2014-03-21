@@ -54,6 +54,7 @@ public class ProcessingActivity extends Activity {
 	public static final int HIDDEN_UNITS = 48;
 	double[][] theta1 = parseCSV("sdcard/Ctrl_F_It/theta1.csv", HIDDEN_UNITS, INPUT + 1);
 	double[][] theta2 = parseCSV("sdcard/Ctrl_F_It/theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
+	public static final int GRAY_CONSTANT = 0xFF8C8C8C;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -313,6 +314,22 @@ public class ProcessingActivity extends Activity {
 					image.setPixel(xPixel, yPixel, Color.WHITE);
 				} else {
 					image.setPixel(xPixel, yPixel, Color.BLACK);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Filters out only the white background and maintains the grayscale of the character
+	 * @param image Image to be filtered
+	 */
+	public void whiteFilter(Bitmap image) {
+		for(int yPixel = 0; yPixel < image.getHeight(); yPixel++) {
+			for(int xPixel = 0; xPixel < image.getWidth() ; xPixel++) {
+				int c = image.getPixel(xPixel, yPixel);
+	            
+				if (c >= GRAY_CONSTANT){	
+					image.setPixel(xPixel, yPixel, Color.WHITE);
 				}
 			}
 		}
