@@ -4,8 +4,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Vector;
 
 import org.ejml.simple.SimpleMatrix;
@@ -43,7 +44,7 @@ public class ProcessingActivity extends Activity {
     public int width;
     public int[] characterPixelArray;
 
-    String filePath = "sdcard/Pictures/Ctrl_F_It/sentence1.bmp";
+    String filePath = "sdcard/Pictures/Ctrl_F_It/ALPHA.bmp";
     //String filePath = camActivity.filePath;
     public int startx;
     public int starty = 0;
@@ -52,8 +53,8 @@ public class ProcessingActivity extends Activity {
 	public static final int INPUT = INPUT_WIDTH * INPUT_WIDTH;
 	public static final int OUTPUT = 26;
 	public static final int HIDDEN_UNITS = 48;
-	double[][] theta1 = parseCSV("sdcard/Ctrl_F_It/theta1.csv", HIDDEN_UNITS, INPUT + 1);
-	double[][] theta2 = parseCSV("sdcard/Ctrl_F_It/theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
+	double[][] theta1 = parseCSV("theta1.csv", HIDDEN_UNITS, INPUT + 1);
+	double[][] theta2 = parseCSV("theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
 	public static final int GRAY_CONSTANT = 0xFF8C8C8C;
 
 	@Override
@@ -84,7 +85,7 @@ public class ProcessingActivity extends Activity {
     		Bitmap img = processedCharacters.get(i);
     		otsuFilter(img);
     		
-    		bmpToFile(img, "sdcard/Ctrl_F_It/Filter/" + Integer.toString(i) + ".bmp");
+    		bmpToFile(img, "sdcard/Pictures/Ctrl_F_It/Filter/" + Integer.toString(i) + ".bmp");
 
     	}
     }
@@ -157,20 +158,21 @@ public class ProcessingActivity extends Activity {
 
 	/**
 	 * Parses a csv file and stores the contents into a 2d double array
-	 * @param inFile Location of the csv file relative to the root directory of the android device
+	 * @param inFile Location of the csv file relative to the src directory of the project
 	 * @param rows Number of rows to be parsed
 	 * @param columns Number of columns to be parsed
 	 * @return Array containing the contents of the csv file
 	 */
 	public double[][] parseCSV(String inFile, int rows, int columns) {
 		double[][] parsedValues = new double[rows][columns];
+		InputStream inputStream = getClass().getResourceAsStream(inFile);
 		BufferedReader br = null;
 		String row;
 		String[] separatedRow;
 		String cvsDelimiter = ",";
 
 		try {
-			br = new BufferedReader(new FileReader(inFile));
+			br = new BufferedReader(new InputStreamReader(inputStream));
 			for(int i = 0; i < rows; i++ ) {
 				row = br.readLine();
 				separatedRow = row.split(cvsDelimiter);
