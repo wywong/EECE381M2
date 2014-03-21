@@ -49,8 +49,8 @@ public class ProcessingActivity extends Activity {
     public int startx;
     public int starty = 0;
     
-	public static final int INPUT_WIDTH = 8;
-	public static final int INPUT = 64;
+	public static final int INPUT_WIDTH = 12;
+	public static final int INPUT = INPUT_WIDTH * INPUT_WIDTH;
 	public static final int OUTPUT = 26;
 	public static final int HIDDEN_UNITS = 48;
 	double[][] theta1 = parseCSV("sdcard/Ctrl_F_It/theta1.csv", HIDDEN_UNITS, INPUT + 1);
@@ -68,7 +68,6 @@ public class ProcessingActivity extends Activity {
 		for(int i = 0; i < text.size(); i++) {
 			Log.d("prediction", Character.toString(text.get(i)));
 		}
-		
 	}
 
 	@Override
@@ -78,11 +77,25 @@ public class ProcessingActivity extends Activity {
 		return true;
 	}
 
+    /**
+     * Iterates through the processedCharacters vector and stores the predicted character in the text vector
+     */
+    public void bitmapToText() {
+    	for(int i = 0; i < processedCharacters.size(); i++) {
+    		Bitmap img = processedCharacters.get(i);
+    		if(referenceSpace.sameAs(img)) {
+    			text.add(' ');
+    		} else {
+    			text.add(predictChar(theta1, theta2, img));
+    		}
+    	}
+    }
+
 	/**
 	 * Applies feed forward propagation to predict the character that has the highest probability of matching the input
 	 * @param theta1 2D array containing the theta values for the hidden layer (size HIDDEN_UNITS x INPUT + 1)
 	 * @param theta2 2D array containing the theta values for the hidden layer (size OUTPUT x HIDDEN_UNITS + 1)
-	 * @param character Unfiltered character bitmap
+	 * @param character Filtered character bitmap
 	 * @return The character that has the highest probability of matching the input
 	 */
 	public char predictChar(double[][] theta1, double[][] theta2, Bitmap character) {
@@ -171,7 +184,7 @@ public class ProcessingActivity extends Activity {
 	}
 
 	/**
-	 * Unrolls the 2D input matrix into a single column vector
+	 * Unrolls the 2D input matrix column by column into a single column vector
 	 * @param input 2D array of pixel values from the input (size INPUT_WIDTH x INPUT_WIDTH)
 	 * @param rows Number of rows in the input array
 	 * @param columns Number of columns in the input array
@@ -194,7 +207,7 @@ public class ProcessingActivity extends Activity {
 	/**
 	 * Converts the BMP image into a 2D array
 	 * @param image Image to be converted
-	 * @return Array containing the pixel information of the BMP image (size INPUT_WIDTH x INPUT_WIDTH)
+	 * @return Array containing the pixel intensities of the BMP image (size INPUT_WIDTH x INPUT_WIDTH)
 	 */
 	public double[][] bmpToArray(Bitmap image) {
 		double[][] imageArray = new double[INPUT_WIDTH][INPUT_WIDTH];
@@ -282,8 +295,7 @@ public class ProcessingActivity extends Activity {
     	//returns the last row value 
     	return 0;
     }
-    
-    
+       
     public void storeCharacter(){
     	//NEED TO STORE WHERE FURTHERS ALONG Y VALUE IS
     	
@@ -391,7 +403,7 @@ public class ProcessingActivity extends Activity {
         
         addWhiteSpace(whitespaceX, whitespaceY, characterDimensions);
         
-        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
+        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, true);
         
         processedCharacters.add(scaledImage);
     }
@@ -404,7 +416,7 @@ public class ProcessingActivity extends Activity {
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE);
         whitespace.drawBitmap(character, finalCharacterRows, finalCharacterRows, null);
         
-        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
+        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, true);
         
         processedCharacters.add(scaledImage);
 	}
@@ -419,24 +431,12 @@ public class ProcessingActivity extends Activity {
         
         referenceSpace = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
 	}
-	
-	
+
     public void addWhiteSpace( int padding_x, int padding_y, int imageDimensions){        
     	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, imageDimensions, imageDimensions);
     	Canvas whitespace = new Canvas(charWithWhite);
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE); 
         whitespace.drawBitmap(character, padding_x, padding_y, null);
-    }
-    
-    public void bitmapToText() {
-    	for(int i = 0; i < processedCharacters.size(); i++) {
-    		Bitmap img = processedCharacters.get(i);
-    		if(referenceSpace.sameAs(img)) {
-    			text.add(' ');
-    		} else {
-    			text.add(predictChar(theta1, theta2, img));
-    		}
-    	}
     }
     
     public void filter() {
