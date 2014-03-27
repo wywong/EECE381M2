@@ -17,6 +17,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 
@@ -31,6 +32,8 @@ public class ProcessingActivity extends Activity {
     public Bitmap charWithWhite;
     public Bitmap scaledImage;
     public Bitmap referenceSpace;
+    public Bitmap line;
+    public Bitmap thresholdBitmap;
 
     public int beginningCharacterColumn = 0;
     public int lastCharacterColumn = 0;
@@ -40,11 +43,14 @@ public class ProcessingActivity extends Activity {
     public int lastCharacterRow = 0;
     public int finalCharacterRows = 0;
     
+    int characterNumber = 0;
     public int height; 
     public int width;
+    public int lineHeight;
     public int[] characterPixelArray;
 
-    String filePath = "sdcard/Pictures/Ctrl_F_It/ALPHA.bmp";
+   // String filePath = "sdcard/Pictures/Ctrl_F_It/ALPHA.bmp";
+    String filePath = Environment.getExternalStorageDirectory().getPath() + "/twoLines.bmp";
     //String filePath = camActivity.filePath;
     public int startx;
     public int starty = 0;
@@ -357,7 +363,10 @@ public class ProcessingActivity extends Activity {
 		}
 	}
 
-	//LOADS THE IMAGE INTO BITMAP FORMAT
+	/**
+	 * Loads image from filepath and calls subsequent functions to threshold
+	 * and store characters as Bitmap objects
+	 */
     public void loadImage()
     {  
         imageFile = BitmapFactory.decodeFile(filePath);
@@ -372,13 +381,74 @@ public class ProcessingActivity extends Activity {
         Threshold(thresholdValue);
         
         //LINE DETECTION
-        //int lineVal = 0;
-        //while( detectLine() < imageFile.getHeight() ){
-        storeCharacter();
-        //}
-        ///saveCharacterBitmapToFile( "test.bmp" );
+        detectLine();
     }
     
+    
+    /**
+	 * scan rows until a black pixel is found
+	 * don't need to worry about left and right margins as storeCharacters() takes care of it
+	 * keep scanning until we find a row with no black pixels create a new image containing a single line
+	 */
+    
+    public int detectLine(){
+
+    	int pixel = 0;
+    	int startLine = 0;
+    	int endLine = 0;
+    	boolean blackDetected = false;
+    	boolean whiteRow = false;
+    	int lineNum = 0;
+    	boolean isLine = false;
+    	
+    	for (int y = 0; y < height; y++){
+    		blackDetected = false;
+    		
+    		for (int x = 0; x < width; x++){
+    			if ((finalThresholdImage.getPixel(x,y) == Color.BLACK)){
+    				blackDetected = true;
+    				if (!isLine ){
+        				isLine = true;
+        				startLine = y;
+        			}
+    			}
+    		}
+    		
+    		if (!blackDetected && isLine){
+    			isLine = false;
+    			endLine = y;
+    			lineHeight = endLine - startLine;
+    			lineNum++;
+    			createLineBitmap(startLine, lineNum);
+    		}
+    		
+    	}
+    	
+    	return 0;
+    }
+    
+    
+    /**
+   	 * Stores the line based on the dimensions passed in as parameters from the threshold image as well as the original image (for 
+   	 * character storage purposes
+   	 * @param startY is the beginning row where the line is detected
+   	 * @param lineNum is the value of the number of the line detected for storage purposes
+   	 */
+    public void createLineBitmap(int startY, int lineNum){
+    	//need to create threshold bitmap and regular bitmap
+        thresholdBitmap = Bitmap.createBitmap(finalThresholdImage, 0, startY, width, lineHeight);
+        line = Bitmap.createBitmap(imageFile, 0 , startY, width, lineHeight);
+
+        saveBitmapToFile("thresholdline" + lineNum + ".bmp", thresholdBitmap);
+        saveBitmapToFile("line" + lineNum + ".bmp", thresholdBitmap);
+        
+        storeCharacter();
+    }
+    
+    /**
+	 * Assigns the pixels of image loaded from sd card with a value of either white or black
+	 * @param requiredThresholdValue the value white designates pixels at either white or black values
+	 */
     public void Threshold(int requiredThresholdValue) {
 		
 		for (int y = 0; y < height ; y++)
@@ -397,34 +467,16 @@ public class ProcessingActivity extends Activity {
 		    }
     }
     
-    public int detectLine(){
-    	//scan rows until a black pixel is found
-    	//we know that this will be the first row 
-    	//don't need to worry about left and right margins as storeCharacters() takes care of it
-    	//keep scanning until we find a row with no black pixels
-    	//create a new image containing a single line
-    	
-    	//NEED TO CHANGE IMAGE VARIABLES OF HEIGHT AND WIDTH
-    	
-    	int y = 0;
-    	int x = 0;
-    	int pixel = 0;
-    	
-    	while (pixel != Color.BLACK){
-    		 
-    	}
-    	
-    	//returns the last row value 
-    	return 0;
-    }
-       
+    /**
+   	 * Parses the threshold image file and stores individual characters as a Bitmap object 
+   	 * Calls createCharacterBitmap() or createSpaceBitmap(characterName) if a character or space is detected 
+   	 */
     public void storeCharacter(){
     	//NEED TO STORE WHERE FURTHERS ALONG Y VALUE IS
     	
         int isCharacter = 0;
         int wasBlackPixel = 0;
         String characterName;
-        int characterNumber = 0;
         int largestCharWidth = 0;
         
         int numWhiteColumns = 0;
@@ -433,12 +485,12 @@ public class ProcessingActivity extends Activity {
         //go through with columns starting at left most column, then if a black pixel is detected, begin storing columns
         //until we encounter a column with no more black pixels.
         for (int x = 0; x < width; x++){
-	        for (int y = 0 ; y < height; y++ ){ 				//NEED TO CHANGE TO LINE HEIGHT 
+	        for (int y = 0 ; y < lineHeight; y++ ){ 				
 	        	if (y == 0){
 	        		wasBlackPixel = 0;
 	        	}
 	        	
-	        	int c = finalThresholdImage.getPixel(x, y);
+	        	int c = thresholdBitmap.getPixel(x, y);
 	        	if (c == Color.BLACK){
 	        		wasBlackPixel = 1;
 	        		if(y > lastCharacterRow){ //this finds the last row containing the letter
@@ -468,14 +520,11 @@ public class ProcessingActivity extends Activity {
 	        
 	        	//once we reach a line with no black, we know its the end of the character so we can store a subset
 	        	//of the threshold image as our character image
-	        	if (y == height - 1){	        	 				//CHANGE TO LINE HEIGHT	
+	        	if (y == lineHeight - 1){	        	 				
 	        		if (wasBlackPixel == 0 && isCharacter == 1) {
 	        			isCharacter = 0;
 	        			
 	        			finalCharacterColumns = x - beginningCharacterColumn;
-	        			
-	        			//RECOGNIZE PERIODS IF THEY ARE ALONG THE BOTTOM LINE --- IMPLEMENT
-	        			//IF THERE IS MORE THAN 4 SPACES -- ITS A MARGIN
 	        			
 	        			//only recognizes characters if they are larger than one pixel long
 	        			if (finalCharacterColumns > 1){
@@ -503,6 +552,12 @@ public class ProcessingActivity extends Activity {
         }
     }
     
+    /**
+  	 * Adds whitespace to image based on which character dimension is smaller (height or width) by calling addWhiteSpace()
+  	 * Scales the image with the whitespace based on INPUT_WIDTH
+  	 * FOR DEBUGGING PURPOSES: calls saveCharacterBitmapToFile() to view the individual character bitmaps that were detected
+  	 * @param characterName name chosen to describe the character when saved to the sd card using the saveCharacterBitmapToFile() function
+  	 */
     public void createCharacterBitmap(String characterName){
     	int whitespaceY;
     	int whitespaceX;
@@ -520,16 +575,24 @@ public class ProcessingActivity extends Activity {
     		characterDimensions = finalCharacterColumns;
     	}
     	
-    	//character = Bitmap.createBitmap(finalThresholdImage, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
-        character = Bitmap.createBitmap(imageFile, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
-        
+        character = Bitmap.createBitmap(line, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
+
         addWhiteSpace(whitespaceX, whitespaceY, characterDimensions);
         
-        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, true);
+        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
         
         processedCharacters.add(scaledImage);
+
+        saveBitmapToFile(characterName, scaledImage);
     }
     
+    
+    /**
+  	 * Creates a bitmap object with just white pixels
+  	 * Scales the image with the whitespace based on INPUT_WIDTH
+  	 * FOR DEBUGGING PURPOSES: calls saveCharacterBitmapToFile() to view the individual character bitmaps that were detected
+  	 * @param characterName name chosen to describe the character when saved to the sd card using the saveCharacterBitmapToFile() function
+  	 */
 	public void createSpaceBitmap(String characterName){
 		//DOESN'T REALLY MATTER THE SIZE, WILL BE RESIZED TO INPUT_WIDTHXINPUT_WIDTH ANYWAYS - JUST NEEDS TO BE SQUARE
 		
@@ -541,8 +604,12 @@ public class ProcessingActivity extends Activity {
         scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, true);
         
         processedCharacters.add(scaledImage);
+        saveBitmapToFile(characterName, scaledImage);
 	}
     
+	/**
+  	 * Creates a Bitmap that is a space character for reference to add to the Vector of characters
+  	 */
 	public void createReferenceSpace(){
 		//DOESN'T REALLY MATTER THE SIZE, WILL BE RESIZED TO INPUT_WIDTHXINPUT_WIDTH ANYWAYS - JUST NEEDS TO BE SQUARE
 		
@@ -553,7 +620,14 @@ public class ProcessingActivity extends Activity {
         
         referenceSpace = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
 	}
-
+	
+	
+	/**
+  	 * Adds whitespace to image to create a square image
+  	 * @param padding_x the amount of space to add to the character on the left and right sides of the image
+  	 * @param padding_y the amount of space to add to the character on the top and bottom of the image
+  	 * @param imageDimensions the length and width of the image - based on the height or width of character (whichever is larger)
+  	 */
     public void addWhiteSpace( int padding_x, int padding_y, int imageDimensions){        
     	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, imageDimensions, imageDimensions);
     	Canvas whitespace = new Canvas(charWithWhite);
@@ -561,4 +635,27 @@ public class ProcessingActivity extends Activity {
         whitespace.drawBitmap(character, padding_x, padding_y, null);
     }
 
+    /**
+  	 * Saves the Bitmap object to a .bmp file on the sdCard based on the global variable scaledImage
+  	 * @param name the title of the file to be saved to the sd card
+  	 * @param image the Bitmap object to be compressed to a file
+  	 */
+    public void saveBitmapToFile(String name, Bitmap image){
+    	FileOutputStream out = null;
+    	
+    	File dir = Environment.getExternalStorageDirectory();
+    	
+    	File characterFile = new File(dir, name );
+    	
+    	try {
+    	       out = new FileOutputStream(characterFile);
+    	       image.compress(Bitmap.CompressFormat.PNG, 90, out);
+    	} catch (Exception e) {
+    	    e.printStackTrace();
+    	} finally {
+    	       try{
+    	           out.close();
+    	       } catch(Throwable ignore) {}
+    	}
+    }
 }
