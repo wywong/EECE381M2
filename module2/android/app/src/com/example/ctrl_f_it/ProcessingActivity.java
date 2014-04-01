@@ -4,8 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Vector;
 
 import org.ejml.simple.SimpleMatrix;
 
@@ -22,11 +24,16 @@ import android.view.Menu;
 
 public class ProcessingActivity extends Activity {
 	
+	public Vector<Bitmap> processedCharacters = new Vector<Bitmap>();
+	public Vector<Character> text = new Vector<Character>();
 	public Bitmap imageFile;
 	public Bitmap finalThresholdImage;
     public Bitmap character;
     public Bitmap charWithWhite;
     public Bitmap scaledImage;
+    public Bitmap referenceSpace;
+    public Bitmap line;
+    public Bitmap thresholdBitmap;
 
     public int beginningCharacterColumn = 0;
     public int lastCharacterColumn = 0;
@@ -36,28 +43,38 @@ public class ProcessingActivity extends Activity {
     public int lastCharacterRow = 0;
     public int finalCharacterRows = 0;
     
+    int characterNumber = 0;
     public int height; 
     public int width;
+    public int lineHeight;
     public int[] characterPixelArray;
 
-    String filePath = camActivity.filePath;
+   // String filePath = "sdcard/Pictures/Ctrl_F_It/ALPHA.bmp";
+    String filePath = Environment.getExternalStorageDirectory().getPath() + "/twoLines.bmp";
+    //String filePath = camActivity.filePath;
     public int startx;
     public int starty = 0;
     
-	public static final int INPUT_WIDTH = 8;
+	public static final int INPUT_WIDTH = 12;
 	public static final int INPUT = INPUT_WIDTH * INPUT_WIDTH;
 	public static final int OUTPUT = 26;
 	public static final int HIDDEN_UNITS = 48;
-	double[][] theta1 = parseCSV("sdcard/Ctrl_F_It/theta1.csv", HIDDEN_UNITS, INPUT + 1);
-	double[][] theta2 = parseCSV("sdcard/Ctrl_F_It/theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
+	double[][] theta1 = parseCSV("theta1.csv", HIDDEN_UNITS, INPUT + 1);
+	double[][] theta2 = parseCSV("theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
+	public static final int GRAY_CONSTANT = 0xFF8C8C8C;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_processing);
-		//loadImage();
-		char matchedChar = predictChar(theta1, theta2, "sdcard/Ctrl_F_It/A0.bmp");
-		Log.d("prediction", Character.toString(matchedChar));
+
+		loadImage();
+		createReferenceSpace();
+		preProcess();
+		bitmapToText();
+		for(int i = 0; i < text.size(); i++) {
+			Log.d("prediction", Character.toString(text.get(i)));
+		}
 	}
 
 	@Override
@@ -68,16 +85,43 @@ public class ProcessingActivity extends Activity {
 	}
 
 	/**
+	 * Iterates through the processedCharacters vector and applies all of the pre-processing before the actual recognition
+	 */
+    public void preProcess() {
+    	for(int i = 0; i < processedCharacters.size(); i++) {
+    		Bitmap img = processedCharacters.get(i);
+    		whiteFilter(img);
+    		
+    		bmpToFile(img, "sdcard/Pictures/Ctrl_F_It/Filter/" + Integer.toString(i) + ".bmp");
+
+    	}
+    }
+    
+    /**
+     * Iterates through the processedCharacters vector and applies the recognition algorithm, storing the result into the text vector
+     */
+    public void bitmapToText() {
+    	for(int i = 0; i < processedCharacters.size(); i++) {
+    		Bitmap img = processedCharacters.get(i);
+    		if(referenceSpace.sameAs(img)) {
+    			text.add(' ');
+    		} else {
+    			text.add(predictChar(theta1, theta2, img));
+    		}
+    	}
+    }
+
+	/**
 	 * Applies feed forward propagation to predict the character that has the highest probability of matching the input
 	 * @param theta1 2D array containing the theta values for the hidden layer (size HIDDEN_UNITS x INPUT + 1)
 	 * @param theta2 2D array containing the theta values for the hidden layer (size OUTPUT x HIDDEN_UNITS + 1)
-	 * @param inFile Location of the image file relative to the root directory of the android device
+	 * @param character Filtered character bitmap
 	 * @return The character that has the highest probability of matching the input
 	 */
-	public char predictChar(double[][] theta1, double[][] theta2, String inFile) {
+	public char predictChar(double[][] theta1, double[][] theta2, Bitmap character) {
 		SimpleMatrix theta1Array = new SimpleMatrix(theta1);
 		SimpleMatrix theta2Array = new SimpleMatrix(theta2);
-		double[][] input = inputUnroll(bmpToArray(inFile), INPUT_WIDTH, INPUT_WIDTH);
+		double[][] input = inputUnroll(bmpToArray(character), INPUT_WIDTH, INPUT_WIDTH);
 		SimpleMatrix inputArray = new SimpleMatrix(input);
 		SimpleMatrix inputArrayWithBias = new SimpleMatrix(INPUT + 1, 1);
 		SimpleMatrix h1Array;
@@ -121,20 +165,21 @@ public class ProcessingActivity extends Activity {
 
 	/**
 	 * Parses a csv file and stores the contents into a 2d double array
-	 * @param inFile Location of the csv file relative to the root directory of the android device
+	 * @param inFile Location of the csv file relative to the src directory of the project
 	 * @param rows Number of rows to be parsed
 	 * @param columns Number of columns to be parsed
 	 * @return Array containing the contents of the csv file
 	 */
 	public double[][] parseCSV(String inFile, int rows, int columns) {
 		double[][] parsedValues = new double[rows][columns];
+		InputStream inputStream = getClass().getResourceAsStream(inFile);
 		BufferedReader br = null;
 		String row;
 		String[] separatedRow;
 		String cvsDelimiter = ",";
 
 		try {
-			br = new BufferedReader(new FileReader(inFile));
+			br = new BufferedReader(new InputStreamReader(inputStream));
 			for(int i = 0; i < rows; i++ ) {
 				row = br.readLine();
 				separatedRow = row.split(cvsDelimiter);
@@ -160,7 +205,7 @@ public class ProcessingActivity extends Activity {
 	}
 
 	/**
-	 * Unrolls the 2D input matrix into a single column vector
+	 * Unrolls the 2D input matrix column by column into a single column vector
 	 * @param input 2D array of pixel values from the input (size INPUT_WIDTH x INPUT_WIDTH)
 	 * @param rows Number of rows in the input array
 	 * @param columns Number of columns in the input array
@@ -182,17 +227,16 @@ public class ProcessingActivity extends Activity {
 
 	/**
 	 * Converts the BMP image into a 2D array
-	 * @param inFile Location of the BMP file relative to the root directory of the android device
-	 * @return Array containing the pixel information of the BMP image (size INPUT_WIDTH x INPUT_WIDTH)
+	 * @param image Image to be converted
+	 * @return Array containing the pixel intensities of the BMP image (size INPUT_WIDTH x INPUT_WIDTH)
 	 */
-	public double[][] bmpToArray(String inFile) {
-		double[][] imageArray = new double[INPUT_WIDTH][INPUT_WIDTH];
-		Bitmap image = BitmapFactory.decodeFile(inFile);
+	public double[][] bmpToArray(Bitmap image) {
+		double[][] imageArray = new double[image.getHeight()][image.getWidth()];
 
-		for(int yPixel = 0; yPixel < INPUT_WIDTH; yPixel++) {
-			for(int xPixel = 0; xPixel < INPUT_WIDTH; xPixel++) {
+		for(int yPixel = 0; yPixel < image.getHeight(); yPixel++) {
+			for(int xPixel = 0; xPixel < image.getWidth(); xPixel++) {
 				//xPixel => column of the array, yPixel => row of the array
-				imageArray[yPixel][xPixel] = rgbToGrayscale(image.getPixel(xPixel, yPixel))/255;
+				imageArray[yPixel][xPixel] = rgbToGrayscale(image.getPixel(xPixel, yPixel)) / 255;
 			}
 		}
 
@@ -204,14 +248,122 @@ public class ProcessingActivity extends Activity {
 	 * @param pixel Integer value that contains ARGB information
 	 * @return Grayscale value by taking the average of the RGB values
 	 */
-	public double rgbToGrayscale(int pixel) {
+	public int rgbToGrayscale(int pixel) {
 		int R = Color.red(pixel);
 		int G = Color.green(pixel);
 		int B = Color.blue(pixel);
-
-		return (R + G + B) / 3;
+		double grayscaleVal = (R + G + B) / 3.0;
+		
+		return (int)grayscaleVal;
 	}
 	
+	/**
+	 * Applies the Otsu filtering algorithm to binarize the input image
+	 * @param image Image to be filtered
+	 */
+	public void otsuFilter(Bitmap image) {
+		int[] histogram = new int[256];
+		int grayscaleVal;
+		int total = image.getHeight() * image.getWidth();
+		double sum = 0;
+		double sumBG = 0;
+		double weightBG = 0;
+		double weightFG = 0;
+		double meanBG;
+		double meanFG;
+		double betweenVariance;
+		double maxVariance = 0;
+		int threshold = 0;
+		
+		//Create a histogram of the number of pixels for each grayscale value
+		for(int yPixel = 0; yPixel < image.getHeight(); yPixel++) {
+			for(int xPixel = 0; xPixel < image.getWidth(); xPixel++) {
+				grayscaleVal = rgbToGrayscale(image.getPixel(xPixel, yPixel));
+				histogram[grayscaleVal]++;
+			}
+		}
+		
+		//Total grayscale value
+		for(int i = 0; i < 256; i++) {
+			sum += i * histogram[i];
+		}
+		
+		for(int i = 0; i < 256; i++) {
+			//Weight of background, continues to next iteration if 0
+			weightBG += histogram[i];
+			if(weightBG == 0) continue;
+			
+			//Weight of foreground, breaks the loop since all later foreground weights will also be 0
+			weightFG = total - weightBG;
+			if(weightFG == 0) break;
+			
+			sumBG += i * histogram[i];
+			
+			//Mean grayscale of background
+			meanBG = sumBG / weightBG;
+			//Mean grayscale of foreground
+			meanFG = (sum - sumBG) / weightFG;
+			
+			//Between class variance
+			betweenVariance = weightBG * weightFG * (meanBG - meanFG) * (meanBG - meanFG);
+			
+			//Records new threshold value if there is a new maximum between class variance
+			if(betweenVariance > maxVariance) {
+				maxVariance = betweenVariance;
+				threshold = i;
+			}
+		}
+		
+		//Actual thresholding of image
+		for(int yPixel = 0; yPixel < image.getHeight(); yPixel++) {
+			for(int xPixel = 0; xPixel < image.getWidth(); xPixel++) {
+				grayscaleVal = rgbToGrayscale(image.getPixel(xPixel, yPixel));
+
+				if(grayscaleVal >= threshold) {
+					image.setPixel(xPixel, yPixel, Color.WHITE);
+				} else {
+					image.setPixel(xPixel, yPixel, Color.BLACK);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Filters out only the white background and maintains the grayscale of the character
+	 * @param image Image to be filtered
+	 */
+	public void whiteFilter(Bitmap image) {
+		for(int yPixel = 0; yPixel < image.getHeight(); yPixel++) {
+			for(int xPixel = 0; xPixel < image.getWidth() ; xPixel++) {
+				int c = image.getPixel(xPixel, yPixel);
+	            
+				if (c >= GRAY_CONSTANT){	
+					image.setPixel(xPixel, yPixel, Color.WHITE);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Writes the bitmap image to the device's file system
+	 * @param image The image to be written, will be saved as a .png
+	 * @param filepath Filepath relative to the device's root directory, eg. /sdcard/...
+	 */
+	public void bmpToFile(Bitmap image, String filepath) {
+		FileOutputStream out = null;
+		File fileName = new File(filepath);
+		try {
+			out = new FileOutputStream(fileName);
+			image.compress(Bitmap.CompressFormat.PNG, 100, out);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try{
+				out.close();
+			} catch(Throwable ignore) {}
+		}
+	}
+
 	/**
 	 * Loads image from filepath and calls subsequent functions to threshold
 	 * and store characters as Bitmap objects
@@ -222,13 +374,74 @@ public class ProcessingActivity extends Activity {
         
     	height = imageFile.getHeight();
 		width = imageFile.getWidth();
-		int thresholdValue = 0xff989695;
 
-        ///thresholds images for character isolation
+		int thresholdValue = 0xff7f7a7a;
+		
+        ///NEED TO THRESHOLD IMAGES
 		finalThresholdImage = imageFile.copy(imageFile.getConfig(), true );
 
         Threshold(thresholdValue);
-       
+        
+        //LINE DETECTION
+        detectLine();
+    }
+    
+    
+    /**
+	 * scan rows until a black pixel is found
+	 * don't need to worry about left and right margins as storeCharacters() takes care of it
+	 * keep scanning until we find a row with no black pixels create a new image containing a single line
+	 */
+    
+    public int detectLine(){
+
+    	int startLine = 0;
+    	int endLine = 0;
+    	boolean blackDetected = false;
+    	int lineNum = 0;
+    	boolean isLine = false;
+    	
+    	for (int y = 0; y < height; y++){
+    		blackDetected = false;
+    		
+    		for (int x = 0; x < width; x++){
+    			if ((finalThresholdImage.getPixel(x,y) == Color.BLACK)){
+    				blackDetected = true;
+    				if (!isLine ){
+        				isLine = true;
+        				startLine = y;
+        			}
+    			}
+    		}
+    		
+    		if (!blackDetected && isLine){
+    			isLine = false;
+    			endLine = y;
+    			lineHeight = endLine - startLine;
+    			lineNum++;
+    			createLineBitmap(startLine, lineNum);
+    		}
+    		
+    	}
+    	
+    	return 0;
+    }
+    
+    
+    /**
+   	 * Stores the line based on the dimensions passed in as parameters from the threshold image as well as the original image (for 
+   	 * character storage purposes
+   	 * @param startY is the beginning row where the line is detected
+   	 * @param lineNum is the value of the number of the line detected for storage purposes
+   	 */
+    public void createLineBitmap(int startY, int lineNum){
+    	//need to create threshold bitmap and regular bitmap
+        thresholdBitmap = Bitmap.createBitmap(finalThresholdImage, 0, startY, width, lineHeight);
+        line = Bitmap.createBitmap(imageFile, 0 , startY, width, lineHeight);
+
+        saveBitmapToFile("thresholdline" + lineNum + ".bmp", thresholdBitmap);
+        saveBitmapToFile("line" + lineNum + ".bmp", thresholdBitmap);
+        
         storeCharacter();
     }
     
@@ -255,16 +468,15 @@ public class ProcessingActivity extends Activity {
     }
     
     /**
-	 * Parses the threshold image file and stores individual characters as a Bitmap object 
-	 * Calls createCharacterBitmap() or createSpaceBitmap(characterName) if a character or space is detected 
-	 */
+   	 * Parses the threshold image file and stores individual characters as a Bitmap object 
+   	 * Calls createCharacterBitmap() or createSpaceBitmap(characterName) if a character or space is detected 
+   	 */
     public void storeCharacter(){
     	//NEED TO STORE WHERE FURTHERS ALONG Y VALUE IS
     	
         int isCharacter = 0;
         int wasBlackPixel = 0;
         String characterName;
-        int characterNumber = 0;
         int largestCharWidth = 0;
         
         int numWhiteColumns = 0;
@@ -273,12 +485,12 @@ public class ProcessingActivity extends Activity {
         //go through with columns starting at left most column, then if a black pixel is detected, begin storing columns
         //until we encounter a column with no more black pixels.
         for (int x = 0; x < width; x++){
-	        for (int y = 0 ; y < height; y++ ){ 				
+	        for (int y = 0 ; y < lineHeight; y++ ){ 				
 	        	if (y == 0){
 	        		wasBlackPixel = 0;
 	        	}
 	        	
-	        	int c = finalThresholdImage.getPixel(x, y);
+	        	int c = thresholdBitmap.getPixel(x, y);
 	        	if (c == Color.BLACK){
 	        		wasBlackPixel = 1;
 	        		if(y > lastCharacterRow){ //this finds the last row containing the letter
@@ -308,7 +520,7 @@ public class ProcessingActivity extends Activity {
 	        
 	        	//once we reach a line with no black, we know its the end of the character so we can store a subset
 	        	//of the threshold image as our character image
-	        	if (y == height - 1){	        	 				//CHANGE TO LINE HEIGHT	
+	        	if (y == lineHeight - 1){	        	 				
 	        		if (wasBlackPixel == 0 && isCharacter == 1) {
 	        			isCharacter = 0;
 	        			
@@ -340,7 +552,6 @@ public class ProcessingActivity extends Activity {
         }
     }
     
-    
     /**
   	 * Adds whitespace to image based on which character dimension is smaller (height or width) by calling addWhiteSpace()
   	 * Scales the image with the whitespace based on INPUT_WIDTH
@@ -364,14 +575,15 @@ public class ProcessingActivity extends Activity {
     		characterDimensions = finalCharacterColumns;
     	}
     	
-    	//character = Bitmap.createBitmap(finalThresholdImage, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
-        character = Bitmap.createBitmap(imageFile, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
-        
+        character = Bitmap.createBitmap(line, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
+
         addWhiteSpace(whitespaceX, whitespaceY, characterDimensions);
         
         scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
         
-        saveCharacterBitmapToFile(characterName);
+        processedCharacters.add(scaledImage);
+
+        saveBitmapToFile(characterName, scaledImage);
     }
     
     /**
@@ -380,15 +592,32 @@ public class ProcessingActivity extends Activity {
   	 * FOR DEBUGGING PURPOSES: calls saveCharacterBitmapToFile() to view the individual character bitmaps that were detected
   	 * @param characterName name chosen to describe the character when saved to the sd card using the saveCharacterBitmapToFile() function
   	 */
-	public void createSpaceBitmap(String characterName){		
+	public void createSpaceBitmap(String characterName){
+		//DOESN'T REALLY MATTER THE SIZE, WILL BE RESIZED TO INPUT_WIDTHXINPUT_WIDTH ANYWAYS - JUST NEEDS TO BE SQUARE
+		
     	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, finalCharacterRows, finalCharacterRows);
 		Canvas whitespace = new Canvas(charWithWhite);
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE);
         whitespace.drawBitmap(character, finalCharacterRows, finalCharacterRows, null);
         
-        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
+        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, true);
         
-        saveCharacterBitmapToFile(characterName);
+        processedCharacters.add(scaledImage);
+        saveBitmapToFile(characterName, scaledImage);
+	}
+    
+	/**
+  	 * Creates a Bitmap that is a space character for reference to add to the Vector of characters
+  	 */
+	public void createReferenceSpace(){
+		//DOESN'T REALLY MATTER THE SIZE, WILL BE RESIZED TO INPUT_WIDTHXINPUT_WIDTH ANYWAYS - JUST NEEDS TO BE SQUARE
+		
+    	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, finalCharacterRows, finalCharacterRows);
+		Canvas whitespace = new Canvas(charWithWhite);
+        whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE);
+        whitespace.drawBitmap(character, finalCharacterRows, finalCharacterRows, null);
+        
+        referenceSpace = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
 	}
 	
 	/**
@@ -403,12 +632,13 @@ public class ProcessingActivity extends Activity {
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE); 
         whitespace.drawBitmap(character, padding_x, padding_y, null);
     }
-      
+
     /**
   	 * Saves the Bitmap object to a .bmp file on the sdCard based on the global variable scaledImage
   	 * @param name the title of the file to be saved to the sd card
+  	 * @param image the Bitmap object to be compressed to a file
   	 */
-    public void saveCharacterBitmapToFile(String name){
+    public void saveBitmapToFile(String name, Bitmap image){
     	FileOutputStream out = null;
     	
     	File dir = Environment.getExternalStorageDirectory();
@@ -417,7 +647,7 @@ public class ProcessingActivity extends Activity {
     	
     	try {
     	       out = new FileOutputStream(characterFile);
-    	       scaledImage.compress(Bitmap.CompressFormat.PNG, 90, out);
+    	       image.compress(Bitmap.CompressFormat.PNG, 90, out);
     	} catch (Exception e) {
     	    e.printStackTrace();
     	} finally {
@@ -426,5 +656,4 @@ public class ProcessingActivity extends Activity {
     	       } catch(Throwable ignore) {}
     	}
     }
-	
 }
