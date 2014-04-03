@@ -2,8 +2,9 @@
 clear ; close all; clc
 
 %% Setup the parameters you will use for this exercise
-input_layer_size  = 8*8;  % 20x20 Input Images of Digits
-hidden_layer_size = 48;   % hidden units
+img_dim = 12;
+input_layer_size  = (img_dim*img_dim) + 2*img_dim + 2*img_dim;  % 20x20 Input Images of Digits
+hidden_layer_size = 40;   % hidden units
 num_labels = 26;          % A to Z , 1 to 26
 
 load('train.mat');
@@ -38,7 +39,7 @@ fprintf('\nTraining Neural Network... \n')
 options = optimset('MaxIter', 125);
 
 %  You should also try different values of lambda
-lambda = 0.02;
+lambda = 0.16;
 
 % Create "short hand" for the cost function to be minimized
 costFunction = @(p) nnCostFunction(p, ...
