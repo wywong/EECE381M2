@@ -86,7 +86,7 @@ public class camActivity extends Activity {
             public void onClick(View v) {
                 // rotate picture counter clockwise
         		currentRotate -= 1;
-        		rotatedBitmap = rotateBitmap();
+        		rotateBitmap();
         		imgPreview.setImageBitmap(rotatedBitmap);
             }
         });
@@ -96,7 +96,7 @@ public class camActivity extends Activity {
             public void onClick(View v) {
                 // rotate picture counter clockwise
         		currentRotate += 1;
-        		rotatedBitmap = rotateBitmap();
+        		rotateBitmap();
         		imgPreview.setImageBitmap(rotatedBitmap);
             }
         });
@@ -169,6 +169,7 @@ public class camActivity extends Activity {
             BitmapFactory.Options options = new BitmapFactory.Options();
 
             bitmap = BitmapFactory.decodeFile(fileUri.getPath(),options);
+            rotatedBitmap = bitmap;
 
             imgPreview.setImageBitmap(bitmap);
         } catch (NullPointerException e) {
@@ -222,14 +223,13 @@ public class camActivity extends Activity {
 	 /*
 	  * draw new bitmap with rotation
 	  */
-	 private Bitmap rotateBitmap() {
+	 private void rotateBitmap() {
 		 int width = bitmap.getWidth();
 		 int height = bitmap.getHeight();
 		 Matrix rotationMatrix = new Matrix();
-		 Bitmap rotatedBitmap;
 
 		 rotationMatrix.postRotate(currentRotate, width / 2, height / 2);
-		 return rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, rotationMatrix, true);
+		 rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, rotationMatrix, true);
 	 }
 
 	/*
