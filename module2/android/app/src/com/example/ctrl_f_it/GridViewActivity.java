@@ -5,16 +5,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
- 
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Display;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.Toast;
  
@@ -56,6 +60,17 @@ public class GridViewActivity extends Activity {
  
         // setting grid view adapter
         gridView.setAdapter(adapter);
+        
+        gridView.setOnItemClickListener(new OnItemClickListener() {
+        	public void onItemClick(AdapterView parent, View v, int position, long id) {
+                // on selecting grid view image
+                // launch full screen activity
+            	
+                Intent i = new Intent(GridViewActivity.this, ProcessingActivity.class);
+                i.putExtra("position", imagePaths.get(position));
+                GridViewActivity.this.startActivity(i);
+        	}
+        });
     }
  
     private void InitilizeGridLayout() {

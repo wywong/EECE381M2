@@ -4,14 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
- 
+
 import android.app.Activity;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
@@ -63,31 +60,7 @@ public class GridViewImageAdapter extends BaseAdapter {
                 imageWidth));
         imageView.setImageBitmap(image);
  
-        // image view click listener
-        imageView.setOnClickListener(new OnImageClickListener(position));
- 
         return imageView;
-    }
- 
-    class OnImageClickListener implements OnClickListener {
- 
-        int _position;
- 
-        // constructor
-        public OnImageClickListener(int position) {
-            this._position = position;
-        }
- 
-        @Override
-        public void onClick(View v) {
-            // on selecting grid view image
-            // launch full screen activity
-        	
-            Intent i = new Intent(_activity, ProcessingActivity.class);
-            i.putExtra("position", _filePaths.get(_position));
-            _activity.startActivity(i);
-        }
- 
     }
  
     /*
