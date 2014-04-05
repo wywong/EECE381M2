@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Vector;
+import java.lang.Math;
+
 
 import org.ejml.simple.SimpleMatrix;
 
@@ -49,8 +51,8 @@ public class ProcessingActivity extends Activity {
     public int lineHeight;
     public int[] characterPixelArray;
 
-   // String filePath = "sdcard/Pictures/Ctrl_F_It/ALPHA.bmp";
-    String filePath = Environment.getExternalStorageDirectory().getPath() + "/twoLines.bmp";
+    String filePath = "sdcard/Pictures/Ctrl_F_It/test.bmp";
+    //String filePath = Environment.getExternalStorageDirectory().getPath() + "/test.bmp";
     //String filePath = camActivity.filePath;
     public int startx;
     public int starty = 0;
@@ -68,12 +70,13 @@ public class ProcessingActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_processing);
 		loadImage();
-		createReferenceSpace();
-		preProcess();
-		bitmapToText();
-		for(int i = 0; i < text.size(); i++) {
-			Log.d("prediction", Character.toString(text.get(i)));
-		}
+		
+		//createReferenceSpace();
+		//preProcess();
+		//bitmapToText();
+		//for(int i = 0; i < text.size(); i++) {
+		//	Log.d("prediction", Character.toString(text.get(i)));
+		//}
 	}
 
 	@Override
@@ -274,6 +277,8 @@ public class ProcessingActivity extends Activity {
 		double maxVariance = 0;
 		int threshold = 0;
 		
+		
+		
 		//Create a histogram of the number of pixels for each grayscale value
 		for(int yPixel = 0; yPixel < image.getHeight(); yPixel++) {
 			for(int xPixel = 0; xPixel < image.getWidth(); xPixel++) {
@@ -377,8 +382,15 @@ public class ProcessingActivity extends Activity {
 		
         ///NEED TO THRESHOLD IMAGES
 		finalThresholdImage = imageFile.copy(imageFile.getConfig(), true );
-
-        Threshold(thresholdValue);
+		
+		//DETECT BOX
+		
+		
+		otsuFilter(finalThresholdImage);
+		saveBitmapToFile("otsu.bmp", finalThresholdImage);
+		
+		
+        //Threshold(thresholdValue);
         
         //LINE DETECTION
         detectLine();
@@ -393,11 +405,9 @@ public class ProcessingActivity extends Activity {
     
     public int detectLine(){
 
-    	int pixel = 0;
     	int startLine = 0;
     	int endLine = 0;
     	boolean blackDetected = false;
-    	boolean whiteRow = false;
     	int lineNum = 0;
     	boolean isLine = false;
     	
@@ -416,10 +426,12 @@ public class ProcessingActivity extends Activity {
     		
     		if (!blackDetected && isLine){
     			isLine = false;
-    			endLine = y;
+    			endLine = y-1;
     			lineHeight = endLine - startLine;
-    			lineNum++;
-    			createLineBitmap(startLine, lineNum);
+    			if (lineHeight > 0){
+    				lineNum++;
+    				createLineBitmap(startLine, lineNum);
+    			}
     		}
     		
     	}
@@ -467,12 +479,104 @@ public class ProcessingActivity extends Activity {
 		    }
     }
     
+    
+    public void dynamicThreshold(Bitmap image){
+    	Bitmap theshold = image.copy(image.getConfig(), true );
+    	double mean = 0; 
+    	
+    	//STANDARD DEVIATION
+    	double sigma = 0.0;
+    	double sigmaSquared = 0.0;
+    	double Qk = 0.0;
+    	double Mk = 0.0;
+    	double Mkminus1 = 0.0;
+    	double xVal = 0.0;
+    	double expo = 0.0;
+    	double sum = 0.0;
+    	
+    	
+    	int c;
+    	
+    	for (int y = 0; y < image.getHeight() ; y++){
+    		
+    		
+    		//USES FIRST LINE TO GET ENOUGH DATA ON AVERAGE AND STANDARD DEVIATION
+    		if (y == 0){
+        		
+    			for (int x = 0; x < image.getWidth(); x++){
+        			c = image.getPixel(x, y);
+        			
+        			sum += c;
+        			xVal = (double) x;
+        			
+        			if (x == 0) Mk = c;
+        			else{
+        				Mkminus1 = Mk;
+        				Mk = Mk + ((c - Mk)/x);
+        			}
+        			
+        			if (x == 0) Qk = 0;
+        			else{
+        				expo = Math.pow( ( ((double) c) - Mkminus1), 2);
+        				Qk = Qk + (xVal - 1.0)*(expo)/(xVal);
+        			}
+
+        	}
+    				
+    		sigmaSquared = Qk/(image.getWidth()-1);
+	    	sigma = Math.sqrt(sigmaSquared);
+	    		
+	    	mean = sum/(image.getWidth()-1);
+    			
+    		}else{
+    		
+	    		for (int x = 0; x < image.getWidth(); x++){
+	    			c = image.getPixel(x, y);
+	    			sum += c;
+	    			xVal = (double) x;
+	    			
+	    			if (c > (mean+sigma) || c < (mean-sigma)){
+	    				//we know it is a character 
+	    				//use previous mean as a threshold value for this line of characters
+	    				
+	    			}
+	    			
+	    			else{
+	    			
+		    			if (x == 0) Mk = c;
+		    			else{
+		    				Mkminus1 = Mk;
+		    				Mk = Mk + ((c - Mk)/x);
+		    			}
+		    			
+		    			if (x == 0) Qk = 0;
+		    			else{
+		    				expo = Math.pow( ( ((double) c) - Mkminus1), 2);
+		    				Qk = Qk + (xVal - 1.0)*(expo)/(xVal);
+		    			}
+		    			
+			    		sigmaSquared = Qk/(x);
+			    		sigma = Math.sqrt(sigmaSquared);
+			    		
+			    		mean = sum/(x);
+	    			}
+	    		}
+	    		
+
+    		
+    		}
+    		
+    	}
+    	
+    	
+   }
+    
+    
     /**
    	 * Parses the threshold image file and stores individual characters as a Bitmap object 
    	 * Calls createCharacterBitmap() or createSpaceBitmap(characterName) if a character or space is detected 
    	 */
     public void storeCharacter(){
-    	//NEED TO STORE WHERE FURTHERS ALONG Y VALUE IS
     	
         int isCharacter = 0;
         int wasBlackPixel = 0;

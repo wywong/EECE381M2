@@ -54,8 +54,8 @@ public class MainActivity extends Activity {
     }
     
     public void openEditor(){
-    	Toast t = Toast.makeText(getApplicationContext(), "I would now call the editor function", Toast.LENGTH_LONG);
-    	t.show();
+    	Intent intent =  new Intent(this, EditorActivity.class);
+    	startActivity(intent);
     }
     
     public void openHelp(){

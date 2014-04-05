@@ -12,6 +12,15 @@
     <string name="preview">Preview</string>
     <string name="action_processing">Process most recent image</string>
     <string name="title_activity_processing">Processing Image</string>
-	<string name="hello_world">Hello world</string>
-
+    <string name="hello_world">Hello world</string>
+    <string name="title_activity_editor">Text Editor</string>
+    <string name="label_myip">My IP:</string>
+    <string name="play">Play</string>
+    <string name="stop">Stop</string>
+    <string name="refresh_socket">Show Sock.</string>
+    <string name="label_ip">IP:</string>
+    <string name="label_port">Port:</string>
+    <string name="connect">Connect</string>
+    
+    
 </resources>
