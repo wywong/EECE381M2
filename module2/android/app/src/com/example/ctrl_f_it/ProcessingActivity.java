@@ -51,8 +51,8 @@ public class ProcessingActivity extends Activity {
     public int lineHeight;
     public int[] characterPixelArray;
 
-    String filePath = "sdcard/Pictures/Ctrl_F_It/test.bmp";
-    //String filePath = Environment.getExternalStorageDirectory().getPath() + "/test.bmp";
+    //String filePath = "sdcard/Pictures/Ctrl_F_It/test.bmp";
+    String filePath = Environment.getExternalStorageDirectory().getPath() + "/uppercase_bold.bmp";
     //String filePath = camActivity.filePath;
     public int startx;
     public int starty = 0;
@@ -72,7 +72,6 @@ public class ProcessingActivity extends Activity {
 
 		loadImage();
 		createReferenceSpace();
-		preProcess();
 		bitmapToText();
 		for(int i = 0; i < text.size(); i++) {
 			Log.d("prediction", Character.toString(text.get(i)));
@@ -86,19 +85,6 @@ public class ProcessingActivity extends Activity {
 		return true;
 	}
 
-	/**
-	 * Iterates through the processedCharacters vector and applies all of the pre-processing before the actual recognition
-	 */
-    public void preProcess() {
-    	for(int i = 0; i < processedCharacters.size(); i++) {
-    		Bitmap img = processedCharacters.get(i);
-    		whiteFilter(img);
-    		
-    		bmpToFile(img, "sdcard/Pictures/Ctrl_F_It/Filter/" + Integer.toString(i) + ".bmp");
-
-    	}
-    }
-    
     /**
      * Iterates through the processedCharacters vector and applies the recognition algorithm, storing the result into the text vector
      */
@@ -378,10 +364,8 @@ public class ProcessingActivity extends Activity {
         
     	height = imageFile.getHeight();
 		width = imageFile.getWidth();
-
-		int thresholdValue = 0xff7f7a7a;
 		
-        ///NEED TO THRESHOLD IMAGES
+       ///NEED TO THRESHOLD IMAGES
 		finalThresholdImage = imageFile.copy(imageFile.getConfig(), true );
 		
 		//DETECT BOX
@@ -389,7 +373,6 @@ public class ProcessingActivity extends Activity {
 		
 		otsuFilter(finalThresholdImage);
 		saveBitmapToFile("otsu.bmp", finalThresholdImage);
-		
 		
         //Threshold(thresholdValue);
         
@@ -453,7 +436,7 @@ public class ProcessingActivity extends Activity {
         line = Bitmap.createBitmap(imageFile, 0 , startY, width, lineHeight);
 
         saveBitmapToFile("thresholdline" + lineNum + ".bmp", thresholdBitmap);
-        saveBitmapToFile("line" + lineNum + ".bmp", thresholdBitmap);
+        saveBitmapToFile("line" + lineNum + ".bmp", line);
         
         storeCharacter();
     }
@@ -598,7 +581,7 @@ public class ProcessingActivity extends Activity {
 	        	int c = thresholdBitmap.getPixel(x, y);
 	        	if (c == Color.BLACK){
 	        		wasBlackPixel = 1;
-	        		if(y > lastCharacterRow){ //this finds the last row containing the letter
+	        		if(y >= lastCharacterRow){ //this finds the last row containing the letter
 	        			lastCharacterRow = y;
 	        		}
 	        		if(y < beginningCharacterRow){ //this is to mark the top row of the letter
@@ -633,7 +616,7 @@ public class ProcessingActivity extends Activity {
 
 	        			//only recognizes characters if they are larger than one pixel long
 	        			if (finalCharacterColumns > 1){
-	        				finalCharacterRows = lastCharacterRow - beginningCharacterRow;
+	        				finalCharacterRows = lastCharacterRow - beginningCharacterRow + 1;
 	        				
 	        				if (finalCharacterColumns > largestCharWidth){
 	        					largestCharWidth = finalCharacterColumns;
@@ -680,7 +663,7 @@ public class ProcessingActivity extends Activity {
     		characterDimensions = finalCharacterColumns;
     	}
     	
-        character = Bitmap.createBitmap(line, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
+        character = Bitmap.createBitmap(thresholdBitmap, beginningCharacterColumn, beginningCharacterRow, finalCharacterColumns, finalCharacterRows );
 
         addWhiteSpace(whitespaceX, whitespaceY, characterDimensions);
         
