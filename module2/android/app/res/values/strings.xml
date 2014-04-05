@@ -12,6 +12,7 @@
     <string name="preview">Preview</string>
     <string name="action_processing">Process most recent image</string>
     <string name="title_activity_processing">Processing Image</string>
-	<string name="hello_world">Hello world</string>
+    <string name="hello_world">Hello world</string>
+    <string name="title_activity_grid_view">GridViewActivity</string>
 
 </resources>
