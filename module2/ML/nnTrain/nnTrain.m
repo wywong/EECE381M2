@@ -2,7 +2,7 @@
 clear ; close all; clc
 
 %% Setup the parameters you will use for this exercise
-input_layer_size  = 8*8;  % 20x20 Input Images of Digits
+input_layer_size  = 12*12;  % 12x12 Input Images of Characters
 hidden_layer_size = 48;   % hidden units
 num_labels = 26;          % A to Z , 1 to 26
 
