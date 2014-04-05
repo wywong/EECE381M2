@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Vector;
 
 import org.ejml.simple.SimpleMatrix;
@@ -43,11 +45,15 @@ public class ProcessingActivity extends Activity {
     public int lastCharacterRow = 0;
     public int finalCharacterRows = 0;
     
+    public Set<String> validWords;
+    
     int characterNumber = 0;
     public int height; 
     public int width;
     public int lineHeight;
     public int[] characterPixelArray;
+    
+    private String dictionary = "wordlist.txt";
 
    // String filePath = "sdcard/Pictures/Ctrl_F_It/ALPHA.bmp";
     String filePath = Environment.getExternalStorageDirectory().getPath() + "/twoLines.bmp";
@@ -69,6 +75,8 @@ public class ProcessingActivity extends Activity {
 		setContentView(R.layout.activity_processing);
 
 		loadImage();
+		loadDict();
+		Log.d("TAG", Integer.toString(validWords.size()));
 		createReferenceSpace();
 		preProcess();
 		bitmapToText();
@@ -109,6 +117,31 @@ public class ProcessingActivity extends Activity {
     			text.add(predictChar(theta1, theta2, img));
     		}
     	}
+    }
+    
+    public void loadDict() {
+		InputStream inputStream = getClass().getResourceAsStream(dictionary);
+		BufferedReader br = null;
+		String line;
+		validWords = new HashSet();
+		try {
+			br = new BufferedReader(new InputStreamReader(inputStream));
+			while((line = br.readLine()) != null) {
+				validWords.add(line);
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if(br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
     }
 
 	/**
