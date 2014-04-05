@@ -80,6 +80,7 @@ public class ProcessingActivity extends Activity {
 		for(int i = 0; i < text.size(); i++) {
 			Log.d("prediction", Character.toString(text.get(i)));
 		}
+		finish();
 	}
 
 	@Override
