@@ -69,14 +69,14 @@ public class ProcessingActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_processing);
+
 		loadImage();
-		
-		//createReferenceSpace();
-		//preProcess();
-		//bitmapToText();
-		//for(int i = 0; i < text.size(); i++) {
-		//	Log.d("prediction", Character.toString(text.get(i)));
-		//}
+		createReferenceSpace();
+		preProcess();
+		bitmapToText();
+		for(int i = 0; i < text.size(); i++) {
+			Log.d("prediction", Character.toString(text.get(i)));
+		}
 	}
 
 	@Override
@@ -92,7 +92,7 @@ public class ProcessingActivity extends Activity {
     public void preProcess() {
     	for(int i = 0; i < processedCharacters.size(); i++) {
     		Bitmap img = processedCharacters.get(i);
-    		otsuFilter(img);
+    		whiteFilter(img);
     		
     		bmpToFile(img, "sdcard/Pictures/Ctrl_F_It/Filter/" + Integer.toString(i) + ".bmp");
 
@@ -378,6 +378,7 @@ public class ProcessingActivity extends Activity {
         
     	height = imageFile.getHeight();
 		width = imageFile.getWidth();
+
 		int thresholdValue = 0xff7f7a7a;
 		
         ///NEED TO THRESHOLD IMAGES
@@ -604,7 +605,7 @@ public class ProcessingActivity extends Activity {
 	        			beginningCharacterRow = y;
 	        		}
 	        		
-	        		//WE KNOW THAT THERE IS A LETTER BEGINNING AT THIS COLUMN
+	        		//if isCharacter is 0 we know that this is the first black pixel of the character
 	        		if (isCharacter == 0 ){
 	        			//if this is the first black pixel, set the flag to store rest of character
 	        			isCharacter = 1;
@@ -629,7 +630,7 @@ public class ProcessingActivity extends Activity {
 	        			isCharacter = 0;
 	        			
 	        			finalCharacterColumns = x - beginningCharacterColumn;
-	        			
+
 	        			//only recognizes characters if they are larger than one pixel long
 	        			if (finalCharacterColumns > 1){
 	        				finalCharacterRows = lastCharacterRow - beginningCharacterRow;
@@ -690,7 +691,6 @@ public class ProcessingActivity extends Activity {
         saveBitmapToFile(characterName, scaledImage);
     }
     
-    
     /**
   	 * Creates a bitmap object with just white pixels
   	 * Scales the image with the whitespace based on INPUT_WIDTH
@@ -724,7 +724,6 @@ public class ProcessingActivity extends Activity {
         
         referenceSpace = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
 	}
-	
 	
 	/**
   	 * Adds whitespace to image to create a square image
