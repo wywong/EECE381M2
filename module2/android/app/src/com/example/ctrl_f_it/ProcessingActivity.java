@@ -7,9 +7,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Vector;
 import java.lang.Math;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.ejml.simple.SimpleMatrix;
 
@@ -46,6 +50,7 @@ public class ProcessingActivity extends Activity {
     public int lastCharacterRow = 0;
     public int finalCharacterRows = 0;
     
+    
     int characterNumber = 0;
     public int height; 
     public int width;
@@ -65,6 +70,11 @@ public class ProcessingActivity extends Activity {
 	double[][] theta1 = parseCSV("theta1.csv", HIDDEN_UNITS, INPUT + 1);
 	double[][] theta2 = parseCSV("theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
 	public static final int GRAY_CONSTANT = 0xFF8C8C8C;
+    
+    private Set<String> validWords;
+    private String dictionary = "wordlist.txt";
+    private ArrayList<String> filters;
+    private ArrayList<char[]> replacers;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -76,12 +86,55 @@ public class ProcessingActivity extends Activity {
 	    Log.d("Testing", filePath);
 
 		loadImage();
+		initDict();
 		createReferenceSpace();
 		bitmapToText();
 		for(int i = 0; i < text.size(); i++) {
 			Log.d("prediction", Character.toString(text.get(i)));
 		}
+
+		String joined = "";
+		for(char c : text) {
+			joined += Character.toString(c);
+		}
+		String[] words = joined.split("\\s+");
+		ArrayList<String> filteredWords = new ArrayList<String>();
+		for(String w : words) {
+			filteredWords.add(filterWord(w));
+		}
+		for(String w : filteredWords) {
+			Log.d("word", w);
+		}
+
 		finish();
+	}
+	
+	public boolean isWord(String s) {
+		return validWords.contains(s.toLowerCase());
+	}
+	
+	public String filterWord(String s) {
+		String corStr = new String(s);
+		if(!isWord(corStr)) {
+			int numFilters = filters.size();
+			for(int ii = 0; ii < numFilters; ++ii) {
+				String pattern = "(" + filters.get( ii ) + ")";
+				Pattern r = Pattern.compile(pattern);
+				Matcher m = r.matcher(corStr);
+				if(m.find()) {
+					String match = m.group(0);
+					for(char c : replacers.get(ii)) {
+						String rStr = corStr.replaceAll("[" + match + "]",
+											Character.toString(c));
+						if(isWord(rStr)) {
+							corStr = new String(rStr);
+							break;
+						}
+					}
+				}
+			}
+		}
+		return corStr;
 	}
 
 	@Override
@@ -103,6 +156,42 @@ public class ProcessingActivity extends Activity {
     			text.add(predictChar(theta1, theta2, img));
     		}
     	}
+    }
+    
+    public void initDict() {
+		filters = new ArrayList<String>();
+		replacers = new ArrayList<char[]>();
+
+		filters.add("[IL]");
+		replacers.add(new char[]{ 'I', 'L' });
+		filters.add("[DO]");
+		replacers.add(new char[]{ 'D', 'O' });
+		filters.add("[MX]");
+		replacers.add(new char[]{ 'M', 'X' });
+
+		// Load up dictionary words into hashset
+		validWords = new HashSet();
+		InputStream inputStream = getClass().getResourceAsStream(dictionary);
+		BufferedReader br = null;
+		String line;
+		try {
+			br = new BufferedReader(new InputStreamReader(inputStream));
+			while((line = br.readLine()) != null) {
+				validWords.add(line);
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if(br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
     }
 
 	/**
