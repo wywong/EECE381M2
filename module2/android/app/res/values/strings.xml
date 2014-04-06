@@ -21,7 +21,12 @@
     <string name="label_ip">IP:</string>
     <string name="label_port">Port:</string>
     <string name="connect">Connect</string>
-    <string name="no_text_files">No Text Files</string>
-    
+    <string name="no_documents">No Documents</string>
+    <string name="menu_insert">Add Document</string>
+    <string name="menu_delete">Delete Document</string>
+    <string name="title">Title</string>
+    <string name="body">Body</string>
+    <string name="edit_text">Edit Text</string>
+    <string name="search">Search</string>
     
 </resources>
