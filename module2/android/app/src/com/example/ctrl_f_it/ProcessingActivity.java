@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import java.lang.Math;
 
@@ -50,9 +52,10 @@ public class ProcessingActivity extends Activity {
     public int width;
     public int lineHeight;
     public int[] characterPixelArray;
+    public int characterWidth;
 
     //String filePath = "sdcard/Pictures/Ctrl_F_It/test.bmp";
-    String filePath = Environment.getExternalStorageDirectory().getPath() + "/uppercase_bold.bmp";
+    String filePath = Environment.getExternalStorageDirectory().getPath() + "/paragraph.bmp";
     //String filePath = camActivity.filePath;
     public int startx;
     public int starty = 0;
@@ -71,11 +74,11 @@ public class ProcessingActivity extends Activity {
 		setContentView(R.layout.activity_processing);
 
 		loadImage();
-		createReferenceSpace();
-		bitmapToText();
-		for(int i = 0; i < text.size(); i++) {
-			Log.d("prediction", Character.toString(text.get(i)));
-		}
+		//createReferenceSpace();
+		//bitmapToText();
+		//for(int i = 0; i < text.size(); i++) {
+		//	Log.d("prediction", Character.toString(text.get(i)));
+		//}
 	}
 
 	@Override
@@ -93,6 +96,7 @@ public class ProcessingActivity extends Activity {
     		Bitmap img = processedCharacters.get(i);
     		if(referenceSpace.sameAs(img)) {
     			text.add(' ');
+    		//DETECT IF PERIOD
     		} else {
     			text.add(predictChar(theta1, theta2, img));
     		}
@@ -375,7 +379,7 @@ public class ProcessingActivity extends Activity {
 		saveBitmapToFile("otsu.bmp", finalThresholdImage);
 		
         //Threshold(thresholdValue);
-        
+
         //LINE DETECTION
         detectLine();
     }
@@ -395,6 +399,8 @@ public class ProcessingActivity extends Activity {
     	int lineNum = 0;
     	boolean isLine = false;
     	
+    	boolean firstLine = true;
+    	
     	for (int y = 0; y < height; y++){
     		blackDetected = false;
     		
@@ -412,9 +418,14 @@ public class ProcessingActivity extends Activity {
     			isLine = false;
     			endLine = y-1;
     			lineHeight = endLine - startLine;
-    			if (lineHeight > 0){
+    			if (lineHeight > 1){
     				lineNum++;
-    				createLineBitmap(startLine, lineNum);
+    				createLineBitmap(startLine, lineNum, firstLine);
+    				
+    				if(firstLine){
+    					firstLine = false;
+    				}
+    				
     			}
     		}
     		
@@ -430,7 +441,7 @@ public class ProcessingActivity extends Activity {
    	 * @param startY is the beginning row where the line is detected
    	 * @param lineNum is the value of the number of the line detected for storage purposes
    	 */
-    public void createLineBitmap(int startY, int lineNum){
+    public void createLineBitmap(int startY, int lineNum, boolean firstChar){
     	//need to create threshold bitmap and regular bitmap
         thresholdBitmap = Bitmap.createBitmap(finalThresholdImage, 0, startY, width, lineHeight);
         line = Bitmap.createBitmap(imageFile, 0 , startY, width, lineHeight);
@@ -438,7 +449,13 @@ public class ProcessingActivity extends Activity {
         saveBitmapToFile("thresholdline" + lineNum + ".bmp", thresholdBitmap);
         saveBitmapToFile("line" + lineNum + ".bmp", line);
         
-        storeCharacter();
+        if(firstChar){
+    		findCharWidth();
+    		storeCharacter();
+		}
+        else{     
+        	storeCharacter();
+        }
     }
     
     /**
@@ -464,115 +481,18 @@ public class ProcessingActivity extends Activity {
     }
     
     
-    public void dynamicThreshold(Bitmap image){
-    	Bitmap theshold = image.copy(image.getConfig(), true );
-    	double mean = 0; 
-    	
-    	//STANDARD DEVIATION
-    	double sigma = 0.0;
-    	double sigmaSquared = 0.0;
-    	double Qk = 0.0;
-    	double Mk = 0.0;
-    	double Mkminus1 = 0.0;
-    	double xVal = 0.0;
-    	double expo = 0.0;
-    	double sum = 0.0;
-    	
-    	
-    	int c;
-    	
-    	for (int y = 0; y < image.getHeight() ; y++){
-    		
-    		
-    		//USES FIRST LINE TO GET ENOUGH DATA ON AVERAGE AND STANDARD DEVIATION
-    		if (y == 0){
-        		
-    			for (int x = 0; x < image.getWidth(); x++){
-        			c = image.getPixel(x, y);
-        			
-        			sum += c;
-        			xVal = (double) x;
-        			
-        			if (x == 0) Mk = c;
-        			else{
-        				Mkminus1 = Mk;
-        				Mk = Mk + ((c - Mk)/x);
-        			}
-        			
-        			if (x == 0) Qk = 0;
-        			else{
-        				expo = Math.pow( ( ((double) c) - Mkminus1), 2);
-        				Qk = Qk + (xVal - 1.0)*(expo)/(xVal);
-        			}
-
-        	}
-    				
-    		sigmaSquared = Qk/(image.getWidth()-1);
-	    	sigma = Math.sqrt(sigmaSquared);
-	    		
-	    	mean = sum/(image.getWidth()-1);
-    			
-    		}else{
-    		
-	    		for (int x = 0; x < image.getWidth(); x++){
-	    			c = image.getPixel(x, y);
-	    			sum += c;
-	    			xVal = (double) x;
-	    			
-	    			if (c > (mean+sigma) || c < (mean-sigma)){
-	    				//we know it is a character 
-	    				//use previous mean as a threshold value for this line of characters
-	    				
-	    			}
-	    			
-	    			else{
-	    			
-		    			if (x == 0) Mk = c;
-		    			else{
-		    				Mkminus1 = Mk;
-		    				Mk = Mk + ((c - Mk)/x);
-		    			}
-		    			
-		    			if (x == 0) Qk = 0;
-		    			else{
-		    				expo = Math.pow( ( ((double) c) - Mkminus1), 2);
-		    				Qk = Qk + (xVal - 1.0)*(expo)/(xVal);
-		    			}
-		    			
-			    		sigmaSquared = Qk/(x);
-			    		sigma = Math.sqrt(sigmaSquared);
-			    		
-			    		mean = sum/(x);
-	    			}
-	    		}
-	    		
-
-    		
-    		}
-    		
-    	}
-    	
-    	
-   }
     
     
-    /**
-   	 * Parses the threshold image file and stores individual characters as a Bitmap object 
-   	 * Calls createCharacterBitmap() or createSpaceBitmap(characterName) if a character or space is detected 
-   	 */
-    public void storeCharacter(){
-    	
-        int isCharacter = 0;
-        int wasBlackPixel = 0;
-        String characterName;
-        int largestCharWidth = 0;
-        
-        int numWhiteColumns = 0;
-        Boolean firstCharacter = false;
-        
-        //go through with columns starting at left most column, then if a black pixel is detected, begin storing columns
-        //until we encounter a column with no more black pixels.
-        for (int x = 0; x < width; x++){
+  public void findCharWidth(){  
+	  int isCharacter = 0;
+      int wasBlackPixel = 0;
+      
+      List<Integer> charFreq = new ArrayList<Integer>();
+      List<Integer> charWidth = new ArrayList<Integer>();
+
+      //go through with columns starting at left most column, then if a black pixel is detected, begin storing columns
+      //until we encounter a column with no more black pixels.
+      for (int x = 0; x < width; x++){
 	        for (int y = 0 ; y < lineHeight; y++ ){ 				
 	        	if (y == 0){
 	        		wasBlackPixel = 0;
@@ -587,6 +507,140 @@ public class ProcessingActivity extends Activity {
 	        		if(y < beginningCharacterRow){ //this is to mark the top row of the letter
 	        			beginningCharacterRow = y;
 	        		}
+	        		
+	        		//if isCharacter is 0 we know that this is the first black pixel of the character
+	        		if (isCharacter == 0 ){
+	        			//if this is the first black pixel, set the flag to store rest of character
+	        			isCharacter = 1;
+	        			beginningCharacterColumn  = x;
+	        			beginningCharacterRow = y;
+	        		}
+	        	}
+	        
+	        	//once we reach a line with no black, we know its the end of the character so we can store a subset
+	        	//of the threshold image as our character image
+	        	if (y == lineHeight - 1){	        	 				
+	        		if (wasBlackPixel == 0 && isCharacter == 1) {
+	        			
+		        			isCharacter = 0;
+		        			
+		        			finalCharacterColumns = x - beginningCharacterColumn;
+	
+		        			//only recognizes characters if they are larger than one pixel long
+		        			if (finalCharacterColumns > 1){
+		        				finalCharacterRows = lastCharacterRow - beginningCharacterRow + 1;
+		        				
+		        				//KEEP TRACK OF CHARACTER WIDTHS AND FREQUENCY
+		        				Integer temp = 0;
+		        				
+		        				if ( charWidth.contains(finalCharacterColumns) ){
+		        					
+		        					System.out.println("character not in vector");
+		        					
+		        					int i = charWidth.indexOf(finalCharacterColumns);
+		        					temp = charFreq.get(i);
+		        					
+		        					charFreq.set(i, ++temp);
+		        					
+		        				}else{
+		        					
+		        					charWidth.add(finalCharacterColumns);
+		        					charFreq.add(1);
+		        					temp = 1;
+		        				}
+		        				
+		        				System.out.println("WIDTH: " + finalCharacterColumns);
+		        				System.out.println("FREQ: " + temp);
+		        				
+		        				lastCharacterRow = 0;
+		        			}
+	        		}
+	        	}
+	        	
+	        }
+      }
+      
+      //go through list of character widths and frequencies and find most common frequency
+      int totalFreq = 0;
+      int largestFreq = 0;
+      int largestWidth = 0;
+      
+      for (int j = 0 ; j < charWidth.size()-3;  j++ ){
+    	  int k = j;
+    	  int g;
+    	  
+    	  if (j > charWidth.size()-4){
+    		  while (j < charWidth.size()){
+    			  totalFreq += charFreq.get(j);
+    			  j++;
+    		  }
+    		  if (totalFreq > largestFreq ){
+        		  largestFreq = totalFreq;
+        		  g = k;
+        		  while( k < charWidth.size()){
+        			  largestWidth += charWidth.get(k);
+        			  k++;
+        		  }
+        		  largestWidth = largestWidth/(k-g);
+        	  }
+    	  }
+    	  else{
+    	  
+	    	  totalFreq = charFreq.get(j) + charFreq.get(++j) + charFreq.get(++j) + charFreq.get(++j);
+	    	  
+	    	  if (totalFreq > largestFreq ){
+	    		  largestFreq = totalFreq;
+	    		  largestWidth = (charWidth.get(k) + charWidth.get(++k) + charWidth.get(++k) + charWidth.get(++k))/4;
+	    	  }
+    	  }
+      }
+      
+      characterWidth = largestWidth;
+      System.out.println("CHARACTERWIDTH: " + characterWidth);
+      
+  }
+    
+    /**
+   	 * Parses the threshold image file and stores individual characters as a Bitmap object 
+   	 * Calls createCharacterBitmap() or createSpaceBitmap(characterName) if a character or space is detected 
+   	 */
+    public void storeCharacter(){
+    	
+        int isCharacter = 0;
+        int wasBlackPixel = 0;
+        String characterName;
+        int largestCharWidth = 0;
+        
+        int numWhiteColumns = 0;
+        Boolean firstCharacter = false;
+        int buffer = 4;
+        
+        int tempCharColumns;
+        int tempCharRows;
+        
+        //go through with columns starting at left most column, then if a black pixel is detected, begin storing columns
+        //until we encounter a column with no more black pixels.
+        for (int x = 0; x < width; x++){
+	        for (int y = 0 ; y < lineHeight; y++ ){ 				
+	        	if (y == 0){
+	        		wasBlackPixel = 0;
+	        	}
+	        	
+	        	int c = thresholdBitmap.getPixel(x, y);
+	        	if (c == Color.BLACK){
+	        		wasBlackPixel = 1;
+	        		
+	        		
+	        		if(y >= lastCharacterRow){ //this finds the last row containing the letter
+	        			lastCharacterRow = y;
+	        		}
+	        		if(y < beginningCharacterRow){ //this is to mark the top row of the letter
+	        			beginningCharacterRow = y;
+	        		}
+	        		
+	        		//if( (x - beginningCharacterColumn)  >= characterWidth - 1 ){
+	        		//	wasBlackPixel = 0;
+	        		//}
 	        		
 	        		//if isCharacter is 0 we know that this is the first black pixel of the character
 	        		if (isCharacter == 0 ){
@@ -610,25 +664,71 @@ public class ProcessingActivity extends Activity {
 	        	//of the threshold image as our character image
 	        	if (y == lineHeight - 1){	        	 				
 	        		if (wasBlackPixel == 0 && isCharacter == 1) {
-	        			isCharacter = 0;
 	        			
-	        			finalCharacterColumns = x - beginningCharacterColumn;
+	        			tempCharColumns = x - beginningCharacterColumn;
+	        			
+	        			tempCharRows = lastCharacterRow - beginningCharacterRow + 1;
+	        			
+	        			
+	        			//if (tempCharColumns > largestCharWidth*2/3){
+		        		if (tempCharColumns > (characterWidth*2)/3){
 
-	        			//only recognizes characters if they are larger than one pixel long
-	        			if (finalCharacterColumns > 1){
-	        				finalCharacterRows = lastCharacterRow - beginningCharacterRow + 1;
-	        				
-	        				if (finalCharacterColumns > largestCharWidth){
-	        					largestCharWidth = finalCharacterColumns;
-	        				}
-	        			
-	        				characterName = String.valueOf(characterNumber) + ".bmp";
-	        			
-	        				createCharacterBitmap(characterName);
-	        				characterNumber++;
-	        				lastCharacterRow = 0;
-	        				firstCharacter = true;
+		        			isCharacter = 0;
+		        			
+		        			finalCharacterColumns = x - beginningCharacterColumn;
+		        			
+		        			if (finalCharacterColumns > (2*characterWidth - buffer)){
+		        				System.out.println("finalCharacterColumns > characterWidth");
+		        				finalCharacterRows = lastCharacterRow - beginningCharacterRow + 1;
+
+		        				
+		        				
+		        				//split into two characters
+		        				//first character
+		        				characterName = String.valueOf(characterNumber) + ".bmp";
+		        				System.out.println(characterNumber + ".bmp");
+		        				System.out.println("full width: " + finalCharacterColumns);
+
+
+		        				finalCharacterColumns = finalCharacterColumns/2;
+		        					
+		        				createCharacterBitmap(characterName);
+		        				characterNumber++;
+		        				
+		        				//second character
+		        				characterName = String.valueOf(characterNumber) + ".bmp";
+		        				System.out.println(characterNumber + ".bmp");
+
+		        				beginningCharacterColumn += finalCharacterColumns;
+		        					
+		        				createCharacterBitmap(characterName);
+		        				characterNumber++;
+		        				
+		        				lastCharacterRow = 0;
+		        				firstCharacter = true;
+		        			}
+	
+		        			//only recognizes characters if they are larger than one pixel long
+		        			else if (finalCharacterColumns > 1){
+		        				finalCharacterRows = lastCharacterRow - beginningCharacterRow + 1;
+		        				
+		        				if (finalCharacterColumns > largestCharWidth){
+		        					largestCharWidth = finalCharacterColumns;
+		        				}
+		        			
+		        				characterName = String.valueOf(characterNumber) + ".bmp";
+		        			
+		        				createCharacterBitmap(characterName);
+		        				characterNumber++;
+		        				lastCharacterRow = 0;
+		        				firstCharacter = true;
+		        			}
 	        			}
+		        		else if(tempCharColumns < characterWidth/5 && tempCharRows < lineHeight){
+		        			//if height is less than line height/5 then assume its a period
+		        		}
+		        		
+		        		
 	        		}
 	        		else if (wasBlackPixel == 0 && isCharacter == 0 && firstCharacter == true){
 	        			numWhiteColumns++;
@@ -745,3 +845,5 @@ public class ProcessingActivity extends Activity {
     	}
     }
 }
+
+
