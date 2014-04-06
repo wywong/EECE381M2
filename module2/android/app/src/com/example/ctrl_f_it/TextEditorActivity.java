@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class TextEditorActivity extends Activity {
 
@@ -87,13 +88,17 @@ public class TextEditorActivity extends Activity {
         String title = mTitleText.getText().toString();
         String body = mBodyText.getText().toString();
 
-        if (mRowId == null) {
-            long id = mDbHelper.createNote(title, body);
-            if (id > 0) {
-                mRowId = id;
-            }
+        if (title != null) {
+        	if (mRowId == null) {
+        		long id = mDbHelper.createNote(title, body);
+        		if (id > 0) {
+        			mRowId = id;
+        		}
+        	} else {
+        		mDbHelper.updateNote(mRowId, title, body);
+        	}
         } else {
-            mDbHelper.updateNote(mRowId, title, body);
+        	Toast.makeText(getApplicationContext(), "Title cannot be blank", Toast.LENGTH_SHORT);
         }
     }
 }
