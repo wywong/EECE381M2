@@ -53,14 +53,18 @@ public class ProcessingActivity extends Activity {
     public int lineHeight;
     public int[] characterPixelArray;
     public int characterWidth;
+    
+    //public int thresholdConstant = 10;
 
-    //String filePath = "sdcard/Pictures/Ctrl_F_It/test.bmp";
-    String filePath = Environment.getExternalStorageDirectory().getPath() + "/paragraph.bmp";
+    String filePath = "sdcard/Pictures/Ctrl_F_It/lower.bmp";
+    //String filePath = Environment.getExternalStorageDirectory().getPath() + "/robert.bmp";
     //String filePath = camActivity.filePath;
     public int startx;
     public int starty = 0;
     
-	public static final int INPUT_WIDTH = 12;
+    public static final int SCALEDDIMENSION = 30;
+    
+	public static final int INPUT_WIDTH = 30;
 	public static final int INPUT = INPUT_WIDTH * INPUT_WIDTH;
 	public static final int OUTPUT = 26;
 	public static final int HIDDEN_UNITS = 48;
@@ -74,11 +78,11 @@ public class ProcessingActivity extends Activity {
 		setContentView(R.layout.activity_processing);
 
 		loadImage();
-		//createReferenceSpace();
-		//bitmapToText();
-		//for(int i = 0; i < text.size(); i++) {
-		//	Log.d("prediction", Character.toString(text.get(i)));
-		//}
+		createReferenceSpace();
+		bitmapToText();
+		for(int i = 0; i < text.size(); i++) {
+			Log.d("prediction", Character.toString(text.get(i)));
+		}
 	}
 
 	@Override
@@ -250,10 +254,10 @@ public class ProcessingActivity extends Activity {
 	}
 	
 	/**
-	 * Applies the Otsu filtering algorithm to binarize the input image
+	 * Applies the   filtering algorithm to binarize the input image
 	 * @param image Image to be filtered
 	 */
-	public void otsuFilter(Bitmap image) {
+	public void otsuFilter(Bitmap image, int thresholdConstant) {
 		int[] histogram = new int[256];
 		int grayscaleVal;
 		int total = image.getHeight() * image.getWidth();
@@ -304,7 +308,7 @@ public class ProcessingActivity extends Activity {
 			//Records new threshold value if there is a new maximum between class variance
 			if(betweenVariance > maxVariance) {
 				maxVariance = betweenVariance;
-				threshold = i;
+				threshold = i + thresholdConstant;
 			}
 		}
 		
@@ -373,12 +377,10 @@ public class ProcessingActivity extends Activity {
 		finalThresholdImage = imageFile.copy(imageFile.getConfig(), true );
 		
 		//DETECT BOX
+		int noFilter = 0;
 		
-		
-		otsuFilter(finalThresholdImage);
+		otsuFilter(finalThresholdImage, noFilter );
 		saveBitmapToFile("otsu.bmp", finalThresholdImage);
-		
-        //Threshold(thresholdValue);
 
         //LINE DETECTION
         detectLine();
@@ -458,34 +460,21 @@ public class ProcessingActivity extends Activity {
         }
     }
     
-    /**
-	 * Assigns the pixels of image loaded from sd card with a value of either white or black
-	 * @param requiredThresholdValue the value white designates pixels at either white or black values
-	 */
-    public void Threshold(int requiredThresholdValue) {
-		
-		for (int y = 0; y < height ; y++)
-		    {
-		        for (int x = 0; x < width ; x++)
-		        {
-		            int c = imageFile.getPixel(x, y);
-		            
-					if (c >= requiredThresholdValue){	
-		            	finalThresholdImage.setPixel(x, y, Color.WHITE);
-					}
-					else {
-						finalThresholdImage.setPixel(x, y, Color.BLACK);
-					}
-		        }
-		    }
-    }
-    
-    
-    
+  /**
+   * Goes through the line Bitmap that was created before the function was called
+   * Creates a histogram of the character widths and their frequencies and selects the most common character width (within 4 pixels) to be
+   * the reference character width  
+   */
     
   public void findCharWidth(){  
 	  int isCharacter = 0;
       int wasBlackPixel = 0;
+      int thresholdVal = 10;
+      
+      //second pass of the isolated line through otsu filter with increased threshold
+      Bitmap otsuLine = line.copy(line.getConfig(), true );
+      otsuFilter(otsuLine, thresholdVal);
+      saveBitmapToFile("ostuLine" + ".bmp", otsuLine);
       
       List<Integer> charFreq = new ArrayList<Integer>();
       List<Integer> charWidth = new ArrayList<Integer>();
@@ -498,7 +487,9 @@ public class ProcessingActivity extends Activity {
 	        		wasBlackPixel = 0;
 	        	}
 	        	
-	        	int c = thresholdBitmap.getPixel(x, y);
+	        	//int c = thresholdBitmap.getPixel(x, y);
+	        	int c = otsuLine.getPixel(x, y);
+
 	        	if (c == Color.BLACK){
 	        		wasBlackPixel = 1;
 	        		if(y >= lastCharacterRow){ //this finds the last row containing the letter
@@ -596,6 +587,7 @@ public class ProcessingActivity extends Activity {
       }
       
       characterWidth = largestWidth;
+
       System.out.println("CHARACTERWIDTH: " + characterWidth);
       
   }
@@ -613,7 +605,7 @@ public class ProcessingActivity extends Activity {
         
         int numWhiteColumns = 0;
         Boolean firstCharacter = false;
-        int buffer = 4;
+        int buffer = 10;
         
         int tempCharColumns;
         int tempCharRows;
@@ -637,10 +629,6 @@ public class ProcessingActivity extends Activity {
 	        		if(y < beginningCharacterRow){ //this is to mark the top row of the letter
 	        			beginningCharacterRow = y;
 	        		}
-	        		
-	        		//if( (x - beginningCharacterColumn)  >= characterWidth - 1 ){
-	        		//	wasBlackPixel = 0;
-	        		//}
 	        		
 	        		//if isCharacter is 0 we know that this is the first black pixel of the character
 	        		if (isCharacter == 0 ){
@@ -671,41 +659,92 @@ public class ProcessingActivity extends Activity {
 	        			
 	        			
 	        			//if (tempCharColumns > largestCharWidth*2/3){
-		        		if (tempCharColumns > (characterWidth*2)/3){
+		        		if (tempCharColumns > characterWidth*3/4){
 
 		        			isCharacter = 0;
 		        			
 		        			finalCharacterColumns = x - beginningCharacterColumn;
 		        			
-		        			if (finalCharacterColumns > (2*characterWidth - buffer)){
+		        			//if (finalCharacterColumns > (2*characterWidth - buffer)){
+		        			if (finalCharacterColumns > (characterWidth + buffer)){
+
 		        				System.out.println("finalCharacterColumns > characterWidth");
 		        				finalCharacterRows = lastCharacterRow - beginningCharacterRow + 1;
 
+		        				//create large bmp and if rows are all black - split in half, otherwise split where white
+		        				characterName = "largeChar" + String.valueOf(characterNumber) + ".bmp";
+		        				createCharacterBitmap(characterName);
+		        				boolean hasWhiteColumn = true;
+		        				int whiteColNum = 0;
 		        				
+		        				for (int i = 0; i < character.getWidth(); i++){
+		        					for (int j = 0; j < character.getHeight(); j++){
+		        						if (character.getPixel(i, j) == Color.BLACK ){
+		        							hasWhiteColumn = false;
+		        						}
+		        					}
+		        					if (hasWhiteColumn){
+		        						whiteColNum = i;
+		        					}
+		        				}
 		        				
 		        				//split into two characters
-		        				//first character
-		        				characterName = String.valueOf(characterNumber) + ".bmp";
-		        				System.out.println(characterNumber + ".bmp");
-		        				System.out.println("full width: " + finalCharacterColumns);
-
-
-		        				finalCharacterColumns = finalCharacterColumns/2;
-		        					
-		        				createCharacterBitmap(characterName);
-		        				characterNumber++;
 		        				
-		        				//second character
-		        				characterName = String.valueOf(characterNumber) + ".bmp";
-		        				System.out.println(characterNumber + ".bmp");
-
-		        				beginningCharacterColumn += finalCharacterColumns;
+		        				//if large bmp has a white column, we split at the white column otherwise, split in half
+		        				if(hasWhiteColumn){
+		        					characterName = String.valueOf(characterNumber) + ".bmp";
+			        				System.out.println(characterNumber + ".bmp");
+			        				System.out.println("full width: " + finalCharacterColumns);
+	
+			        				finalCharacterColumns = whiteColNum;
+			        					
+			        				createCharacterBitmap(characterName);
+			        				characterNumber++;
+			        				
+			        				//second character
+			        				characterName = String.valueOf(characterNumber) + ".bmp";
+			        				System.out.println(characterNumber + ".bmp");
+	
+			        				beginningCharacterColumn += whiteColNum;
+			        					
+			        				createCharacterBitmap(characterName);
+			        				characterNumber++;
+			        				
+			        				lastCharacterRow = 0;
+			        				firstCharacter = true;
+		        				}
+		        				else{
+		        					int numChars = 0;
 		        					
-		        				createCharacterBitmap(characterName);
-		        				characterNumber++;
-		        				
-		        				lastCharacterRow = 0;
-		        				firstCharacter = true;
+		        					//check if two, three or 4 characters stuck together
+		        					if(finalCharacterColumns > (3*characterWidth + 2*buffer)){   //4 characters together
+		        						numChars = 4;
+		        						
+		        					}else if(finalCharacterColumns > (2*characterWidth + 2*buffer)){   //3 characters together
+		        						numChars = 3;
+		        					}else{  				//2 characters together
+		        					
+		        						numChars = 2;
+		        					}
+		        					
+		        					
+	        						finalCharacterColumns = finalCharacterColumns/numChars;
+	        						
+	        						for (int chars = 0; chars < numChars; chars++){
+	        							characterName = String.valueOf(characterNumber) + ".bmp";
+				        				System.out.println(characterNumber + ".bmp");
+				        				System.out.println("full width: " + finalCharacterColumns);
+		
+				        				createCharacterBitmap(characterName);
+				        				characterNumber++;
+				        				
+				        				beginningCharacterColumn += finalCharacterColumns;
+	        						}
+	        						
+			        				lastCharacterRow = 0;
+			        				firstCharacter = true;
+			        				
+		        				}
 		        			}
 	
 		        			//only recognizes characters if they are larger than one pixel long
@@ -723,11 +762,7 @@ public class ProcessingActivity extends Activity {
 		        				lastCharacterRow = 0;
 		        				firstCharacter = true;
 		        			}
-	        			}
-		        		else if(tempCharColumns < characterWidth/5 && tempCharRows < lineHeight){
-		        			//if height is less than line height/5 then assume its a period
 		        		}
-		        		
 		        		
 	        		}
 	        		else if (wasBlackPixel == 0 && isCharacter == 0 && firstCharacter == true){
@@ -767,7 +802,7 @@ public class ProcessingActivity extends Activity {
 
         addWhiteSpace(whitespaceX, whitespaceY, characterDimensions);
         
-        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
+        scaledImage = Bitmap.createScaledBitmap(charWithWhite, SCALEDDIMENSION, SCALEDDIMENSION, false);
         
         processedCharacters.add(scaledImage);
 
@@ -788,7 +823,7 @@ public class ProcessingActivity extends Activity {
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE);
         whitespace.drawBitmap(character, finalCharacterRows, finalCharacterRows, null);
         
-        scaledImage = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, true);
+        scaledImage = Bitmap.createScaledBitmap(charWithWhite, SCALEDDIMENSION, SCALEDDIMENSION, true);
         
         processedCharacters.add(scaledImage);
         saveBitmapToFile(characterName, scaledImage);
@@ -805,7 +840,7 @@ public class ProcessingActivity extends Activity {
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE);
         whitespace.drawBitmap(character, finalCharacterRows, finalCharacterRows, null);
         
-        referenceSpace = Bitmap.createScaledBitmap(charWithWhite, INPUT_WIDTH, INPUT_WIDTH, false);
+        referenceSpace = Bitmap.createScaledBitmap(charWithWhite, SCALEDDIMENSION, SCALEDDIMENSION, false);
 	}
 	
 	/**
@@ -829,8 +864,8 @@ public class ProcessingActivity extends Activity {
     public void saveBitmapToFile(String name, Bitmap image){
     	FileOutputStream out = null;
     	
-    	File dir = Environment.getExternalStorageDirectory();
-    	
+    	//File dir = Environment.getExternalStorageDirectory();
+    	File dir = new File("/sdcard/Pictures/Ctrl_F_It/Filter/");
     	File characterFile = new File(dir, name );
     	
     	try {
