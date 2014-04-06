@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -22,9 +23,11 @@ import android.widget.Toast;
 
 public class camActivity extends Activity {
 	public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
+	public static final int CROP_IMAGE_REQUEST_CODE = 200;
 	public static final int MEDIA_TYPE_IMAGE = 1;
 
 	private Uri fileUri;
+	private Uri tempUri;
 	private float currentRotate;
 	// Original bitmap from camera
 	private Bitmap bitmap;
@@ -76,7 +79,7 @@ public class camActivity extends Activity {
         	@Override
             public void onClick(View v) {
                 // capture picture
-        		deleteImage();
+        		deleteImage(fileUri);
                 captureImage();
             }
         });
@@ -108,9 +111,9 @@ public class camActivity extends Activity {
 	 private void captureImage() {
 	     Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-	     fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE);
+	     tempUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE);
 
-	     intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+	     intent.putExtra(MediaStore.EXTRA_OUTPUT, tempUri);
 
 	     // start the image capture Intent
 	     startActivityForResult(intent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
@@ -127,10 +130,10 @@ public class camActivity extends Activity {
 	 /*
 	  * Delete most recently captured image
 	  */
-	 private void deleteImage() {
+	 private void deleteImage(Uri uri) {
 		 imgPreview.setVisibility(View.GONE);
-		 File file = new File(fileUri.getPath());
-		 boolean deleted = file.delete();
+		 File file = new File(uri.getPath());
+		 file.delete();
 	 }
 
 	 /**
@@ -142,8 +145,8 @@ public class camActivity extends Activity {
 	     if (requestCode == CAMERA_CAPTURE_IMAGE_REQUEST_CODE) {
 	         if (resultCode == RESULT_OK) {
 	             // successfully captured the image
-	             // display it in image view
-	             previewCapturedImage();
+	             // prompt user to crop image
+	             crop();
 	         } else if (resultCode == RESULT_CANCELED) {
 	             // user cancelled Image capture
 	             Toast.makeText(getApplicationContext(), "User cancelled image capture", Toast.LENGTH_SHORT).show();
@@ -151,6 +154,10 @@ public class camActivity extends Activity {
 	             // failed to capture image
 	             Toast.makeText(getApplicationContext(), "Sorry! Failed to capture image", Toast.LENGTH_SHORT).show();
 	         }
+	     }
+	     else if(requestCode == CROP_IMAGE_REQUEST_CODE) {
+	    	 deleteImage(tempUri);
+	    	 previewCapturedImage();
 	     }
 	 }
 
@@ -247,6 +254,32 @@ public class camActivity extends Activity {
 			try{
 				out.close();
 			} catch(Throwable ignore) {}
+		}
+	}
+	
+	/*
+	 * prompts the user to crop the image
+	 */
+	private void crop() {
+		try {
+			fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE);
+			//call the standard crop action intent (the user device may not support it)
+			Intent cropIntent = new Intent("com.android.camera.action.CROP"); 
+			//indicate image type and Uri
+			cropIntent.setDataAndType(tempUri, "image/*");
+			//set crop properties
+			cropIntent.putExtra("crop", "true");
+			//retrieve data on return
+			cropIntent.putExtra("return-data", true);
+			cropIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+			//start the activity - we handle returning in onActivityResult
+			startActivityForResult(cropIntent, CROP_IMAGE_REQUEST_CODE);
+		}
+		catch(ActivityNotFoundException anfe){
+		    //display an error message
+		    String errorMessage = "Whoops - your device doesn't support the crop action!";
+		    Toast toast = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
+		    toast.show();
 		}
 	}
 }
