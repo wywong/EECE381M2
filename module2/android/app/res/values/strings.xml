@@ -13,5 +13,7 @@
     <string name="action_processing">Process Image</string>
     <string name="hello_world">Hello world</string>
     <string name="title_activity_grid_view">Choose an image to process</string>
+	<string name="rotateLeft">Rotate Left</string>
+	<string name="rotateRight">Rotate Right</string>
 
 </resources>

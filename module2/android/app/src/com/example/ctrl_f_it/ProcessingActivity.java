@@ -50,9 +50,8 @@ public class ProcessingActivity extends Activity {
     public int lineHeight;
     public int[] characterPixelArray;
 
-    //String filePath = "sdcard/Pictures/Ctrl_F_It/ALPHA.bmp";
-    //String filePath = Environment.getExternalStorageDirectory().getPath() + "/twoLines.bmp";
     String filePath;
+
     public int startx;
     public int starty = 0;
     
