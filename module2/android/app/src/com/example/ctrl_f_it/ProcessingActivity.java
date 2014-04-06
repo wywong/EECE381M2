@@ -51,8 +51,8 @@ public class ProcessingActivity extends Activity {
     public int lineHeight;
     public int[] characterPixelArray;
 
-    //String filePath = "sdcard/Pictures/Ctrl_F_It/test.bmp";
-    String filePath = Environment.getExternalStorageDirectory().getPath() + "/uppercase_bold.bmp";
+    String filePath = "sdcard/Pictures/Ctrl_F_It/lowercase_bold.bmp";
+    //String filePath = Environment.getExternalStorageDirectory().getPath() + "/uppercase_bold.bmp";
     //String filePath = camActivity.filePath;
     public int startx;
     public int starty = 0;
@@ -730,8 +730,9 @@ public class ProcessingActivity extends Activity {
     	FileOutputStream out = null;
     	
     	File dir = Environment.getExternalStorageDirectory();
+    	name = "Pictures/Ctrl_F_It/Filter" + name;
     	
-    	File characterFile = new File(dir, name );
+    	File characterFile = new File(dir, name);
     	
     	try {
     	       out = new FileOutputStream(characterFile);
