@@ -5,6 +5,12 @@
           android:title="@string/camera"
           android:showAsAction="ifRoom" />
     
+    <!-- Image processing -->
+    <item android:id="@+id/action_processing"
+		  android:icon="@drawable/ic_action_flash_on"
+          android:title="@string/action_processing"
+          android:showAsAction="ifRoom" />
+    
     <!-- Text editor action button -->
     <item android:id="@+id/action_editor"
           android:icon="@drawable/ic_action_edit"
@@ -20,10 +26,5 @@
     <!-- Settings, should always be in the overflow -->
     <item android:id="@+id/action_settings"
           android:title="@string/action_settings"
-          android:showAsAction="never" />
-    
-    <!-- Image processing -->
-    <item android:id="@+id/action_processing"
-          android:title="@string/action_processing"
           android:showAsAction="never" />
 </menu>
