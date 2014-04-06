@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
                 openSettings();
                 return true;
             case R.id.action_processing:
-            	openProcessing();
+            	openGridView();
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -70,6 +70,11 @@ public class MainActivity extends Activity {
     
     public void openProcessing(){
     	Intent intent = new Intent(this, ProcessingActivity.class);
+    	startActivity(intent);
+    }
+    
+    public void openGridView(){
+    	Intent intent = new Intent(this, GridViewActivity.class);
     	startActivity(intent);
     }
 }

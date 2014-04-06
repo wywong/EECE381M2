@@ -14,6 +14,7 @@ import java.lang.Math;
 import org.ejml.simple.SimpleMatrix;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -51,9 +52,9 @@ public class ProcessingActivity extends Activity {
     public int lineHeight;
     public int[] characterPixelArray;
 
-    //String filePath = "sdcard/Pictures/Ctrl_F_It/test.bmp";
-    String filePath = Environment.getExternalStorageDirectory().getPath() + "/uppercase_bold.bmp";
-    //String filePath = camActivity.filePath;
+    //String filePath = Environment.getExternalStorageDirectory().getPath() + "/uppercase_bold.bmp";
+    String filePath;
+
     public int startx;
     public int starty = 0;
     
@@ -70,12 +71,17 @@ public class ProcessingActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_processing);
 
+		Intent intent = getIntent();
+	    filePath = intent.getStringExtra("position");
+	    Log.d("Testing", filePath);
+
 		loadImage();
 		createReferenceSpace();
 		bitmapToText();
 		for(int i = 0; i < text.size(); i++) {
 			Log.d("prediction", Character.toString(text.get(i)));
 		}
+		finish();
 	}
 
 	@Override
