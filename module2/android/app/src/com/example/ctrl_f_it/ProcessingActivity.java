@@ -56,7 +56,7 @@ public class ProcessingActivity extends Activity {
     
     //public int thresholdConstant = 10;
 
-    String filePath = "sdcard/Pictures/Ctrl_F_It/lower.bmp";
+    String filePath = "sdcard/Pictures/Ctrl_F_It/uppercase_bold.bmp";
     //String filePath = Environment.getExternalStorageDirectory().getPath() + "/robert.bmp";
     //String filePath = camActivity.filePath;
     public int startx;
@@ -78,11 +78,11 @@ public class ProcessingActivity extends Activity {
 		setContentView(R.layout.activity_processing);
 
 		loadImage();
-		createReferenceSpace();
-		bitmapToText();
-		for(int i = 0; i < text.size(); i++) {
-			Log.d("prediction", Character.toString(text.get(i)));
-		}
+		//createReferenceSpace();
+		//bitmapToText();
+		//for(int i = 0; i < text.size(); i++) {
+			//Log.d("prediction", Character.toString(text.get(i)));
+		//}
 	}
 
 	@Override
@@ -451,7 +451,7 @@ public class ProcessingActivity extends Activity {
         saveBitmapToFile("thresholdline" + lineNum + ".bmp", thresholdBitmap);
         saveBitmapToFile("line" + lineNum + ".bmp", line);
         
-        if(firstChar){
+       if(firstChar){
     		findCharWidth();
     		storeCharacter();
 		}
@@ -640,7 +640,8 @@ public class ProcessingActivity extends Activity {
 	        			//if the number of white columns is equal or greater than the size of a character (we will have already seen a character)
 	        			//we know that it is a space
 	        			if (firstCharacter == true && numWhiteColumns >= largestCharWidth){
-	        				characterName = String.valueOf(characterNumber) + ".bmp";
+	        				
+	        				characterName = String.format("%04d", characterNumber)  + ".bmp";
 		        			createSpaceBitmap(characterName);
 		        			numWhiteColumns = 0;
 		        			characterNumber++;
@@ -692,7 +693,7 @@ public class ProcessingActivity extends Activity {
 		        				
 		        				//if large bmp has a white column, we split at the white column otherwise, split in half
 		        				if(hasWhiteColumn){
-		        					characterName = String.valueOf(characterNumber) + ".bmp";
+		        					characterName =  String.format("%04d", characterNumber) + ".bmp";
 			        				System.out.println(characterNumber + ".bmp");
 			        				System.out.println("full width: " + finalCharacterColumns);
 	
@@ -702,7 +703,7 @@ public class ProcessingActivity extends Activity {
 			        				characterNumber++;
 			        				
 			        				//second character
-			        				characterName = String.valueOf(characterNumber) + ".bmp";
+			        				characterName =  String.format("%04d", characterNumber) + ".bmp";
 			        				System.out.println(characterNumber + ".bmp");
 	
 			        				beginningCharacterColumn += whiteColNum;
@@ -731,7 +732,7 @@ public class ProcessingActivity extends Activity {
 	        						finalCharacterColumns = finalCharacterColumns/numChars;
 	        						
 	        						for (int chars = 0; chars < numChars; chars++){
-	        							characterName = String.valueOf(characterNumber) + ".bmp";
+	        							characterName =  String.format("%04d", characterNumber) + ".bmp";
 				        				System.out.println(characterNumber + ".bmp");
 				        				System.out.println("full width: " + finalCharacterColumns);
 		
@@ -755,7 +756,7 @@ public class ProcessingActivity extends Activity {
 		        					largestCharWidth = finalCharacterColumns;
 		        				}
 		        			
-		        				characterName = String.valueOf(characterNumber) + ".bmp";
+		        				characterName =  String.format("%04d", characterNumber) + ".bmp";
 		        			
 		        				createCharacterBitmap(characterName);
 		        				characterNumber++;
