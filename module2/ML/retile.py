@@ -24,7 +24,7 @@ while images:
     # generate slightly tilted images
     white_bg = Image.new('RGBA', tile.size, (255,)*4)
 
-    for zz in range(1, 10):
+    for zz in range(1, 7):
         # left tilt
         angle = random.uniform(-5, 5)
         rot = tile.rotate(angle, Image.BILINEAR, expand=0)

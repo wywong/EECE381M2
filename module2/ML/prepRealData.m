@@ -4,8 +4,8 @@ imageFiles = dir('tiles/*.bmp');
 X = [];
 y = [];
 
-numFonts = 7;
-tilesPerFont = 10;
+numFonts = 18;
+tilesPerFont = 7;
 count = 0;
 
 % 1 to 26 represents A to Z
