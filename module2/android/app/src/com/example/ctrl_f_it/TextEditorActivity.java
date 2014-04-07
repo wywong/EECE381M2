@@ -14,8 +14,8 @@ public class TextEditorActivity extends Activity {
     private EditText mBodyText;
     private Long mRowId;
     private NotesDbAdapter mDbHelper;
-    private int textIndex = 0;
-    private String searchTextPrev = null;
+    public int textIndex = 0;
+    public String searchTextPrev = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,17 +62,19 @@ public class TextEditorActivity extends Activity {
 				int tt;
 				boolean found = false;
 				
-				String searchText = findViewById(R.id.searchString).toString();
-				if(searchText != searchTextPrev) {
+				String searchText = ((EditText)findViewById(R.id.searchString)).getText().toString();
+				if(!searchText.equals(searchTextPrev) ) {
 					searchTextPrev = searchText;
 					textIndex = 0;
 				}
 				
-				int searchSize = searchText.length();
 				String text = mBodyText.getText().toString();
+				int searchSize = searchText.length();
+				int bodySize = text.length() - 1;
 				
-				for(tt = textIndex; tt < text.length() - searchSize; tt++){
-					if(text.regionMatches(0, searchText, tt, searchSize)){
+				for(tt = textIndex; tt < bodySize - searchSize; tt++){
+					if(text.regionMatches(tt, searchText, 0, searchSize)){
+						tt++;
 						textIndex = tt;
 						found = true;
 						break;
@@ -80,11 +82,15 @@ public class TextEditorActivity extends Activity {
 				}
 				
 				if(found) {
-					mBodyText.setSelection(textIndex, textIndex+searchSize);
+					mBodyText.setSelection(textIndex - 1, textIndex + searchSize - 1);
 				}
 				
-				if(tt == text.length() - searchSize)
+				found = false;
+				
+				if(tt == text.length() - searchSize) {
 					textIndex = 0;
+					Toast.makeText(getApplicationContext(), "End of File Reached", Toast.LENGTH_SHORT).show();
+				}
 			}
 		});
     }
