@@ -10,6 +10,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
@@ -40,6 +41,7 @@ public class camActivity extends Activity {
 	private Button btnRetry;
 	private Button btnRotateLeft;
 	private Button btnRotateRight;
+	private Button btnFilter;
 
 	public static String filePath;
 	@Override
@@ -53,6 +55,7 @@ public class camActivity extends Activity {
         btnRetry = (Button) findViewById(R.id.button_retry);
         btnRotateLeft = (Button) findViewById(R.id.button_rotateleft);
         btnRotateRight = (Button) findViewById(R.id.button_rotateright);
+        btnFilter = (Button) findViewById(R.id.button_filter);
 
         /**
          * Capture image button click event
@@ -103,6 +106,20 @@ public class camActivity extends Activity {
         		imgPreview.setImageBitmap(rotatedBitmap);
             }
         });
+        
+        btnFilter.setOnClickListener(new View.OnClickListener() {
+        	@Override
+            public void onClick(View v) {
+                //get image from file and filter it to preview before running ocr
+        		BitmapFactory.Options options = new BitmapFactory.Options();
+        		Bitmap otsu = BitmapFactory.decodeFile(fileUri.getPath(),options);
+        		
+        		otsuFilter(otsu);
+        		
+        		imgPreview.setImageBitmap(otsu);
+            }
+        });
+        
 	}
 
 	 /*
@@ -282,4 +299,92 @@ public class camActivity extends Activity {
 		    toast.show();
 		}
 	}
+	
+	/**
+	 * Applies the   filtering algorithm to binarize the input image
+	 * @param image Image to be filtered
+	 */
+	public void otsuFilter(Bitmap image) {
+		int[] histogram = new int[256];
+		int grayscaleVal;
+		int total = image.getHeight() * image.getWidth();
+		double sum = 0;
+		double sumBG = 0;
+		double weightBG = 0;
+		double weightFG = 0;
+		double meanBG;
+		double meanFG;
+		double betweenVariance;
+		double maxVariance = 0;
+		int threshold = 0;
+		
+		
+		
+		//Create a histogram of the number of pixels for each grayscale value
+		for(int yPixel = 0; yPixel < image.getHeight(); yPixel++) {
+			for(int xPixel = 0; xPixel < image.getWidth(); xPixel++) {
+				grayscaleVal = rgbToGrayscale(image.getPixel(xPixel, yPixel));
+				histogram[grayscaleVal]++;
+			}
+		}
+		
+		//Total grayscale value
+		for(int i = 0; i < 256; i++) {
+			sum += i * histogram[i];
+		}
+		
+		for(int i = 0; i < 256; i++) {
+			//Weight of background, continues to next iteration if 0
+			weightBG += histogram[i];
+			if(weightBG == 0) continue;
+			
+			//Weight of foreground, breaks the loop since all later foreground weights will also be 0
+			weightFG = total - weightBG;
+			if(weightFG == 0) break;
+			
+			sumBG += i * histogram[i];
+			
+			//Mean grayscale of background
+			meanBG = sumBG / weightBG;
+			//Mean grayscale of foreground
+			meanFG = (sum - sumBG) / weightFG;
+			
+			//Between class variance
+			betweenVariance = weightBG * weightFG * (meanBG - meanFG) * (meanBG - meanFG);
+			
+			//Records new threshold value if there is a new maximum between class variance
+			if(betweenVariance > maxVariance) {
+				maxVariance = betweenVariance;
+				threshold = i;
+			}
+		}
+		
+		//Actual thresholding of image
+		for(int yPixel = 0; yPixel < image.getHeight(); yPixel++) {
+			for(int xPixel = 0; xPixel < image.getWidth(); xPixel++) {
+				grayscaleVal = rgbToGrayscale(image.getPixel(xPixel, yPixel));
+
+				if(grayscaleVal >= threshold) {
+					image.setPixel(xPixel, yPixel, Color.WHITE);
+				} else {
+					image.setPixel(xPixel, yPixel, Color.BLACK);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Converts a pixel value into grayscale
+	 * @param pixel Integer value that contains ARGB information
+	 * @return Grayscale value by taking the average of the RGB values
+	 */
+	public int rgbToGrayscale(int pixel) {
+		int R = Color.red(pixel);
+		int G = Color.green(pixel);
+		int B = Color.blue(pixel);
+		double grayscaleVal = (R + G + B) / 3.0;
+		
+		return (int)grayscaleVal;
+	}
+	
 }

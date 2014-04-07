@@ -29,6 +29,7 @@ import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 
@@ -45,6 +46,7 @@ public class ProcessingActivity extends Activity {
     public Bitmap referenceSpace;
     public Bitmap line;
     public Bitmap thresholdBitmap;
+    
 
     public int beginningCharacterColumn = 0;
     public int lastCharacterColumn = 0;
@@ -73,7 +75,7 @@ public class ProcessingActivity extends Activity {
 	public static final int INPUT_WIDTH = 30;
 	public static final int INPUT = INPUT_WIDTH * INPUT_WIDTH + 4*INPUT_WIDTH;
 	public static final int OUTPUT = 26;
-	public static final int HIDDEN_UNITS = 48;
+	public static final int HIDDEN_UNITS = 60;
 	double[][] theta1 = parseCSV("theta1.csv", HIDDEN_UNITS, INPUT + 1);
 	double[][] theta2 = parseCSV("theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
 	public static final int GRAY_CONSTANT = 0xFF8C8C8C;
@@ -160,8 +162,10 @@ public class ProcessingActivity extends Activity {
     	for(int i = 0; i < processedCharacters.size(); i++) {
     		Bitmap img = processedCharacters.get(i);
     		if(referenceSpace.sameAs(img)) {
-    			text.add(' ');
+    			text.add(' ');	
     		//DETECT IF PERIOD
+    		} else if(isPeriod(img)) {
+    			text.add('.');
     		} else {
     			text.add(predictChar(theta1, theta2, img));
     		}
@@ -289,7 +293,7 @@ public class ProcessingActivity extends Activity {
 		SimpleMatrix outputArray;
 		double sigmoidVal;
 		int bestMatch = 0;
-		
+
 		//Initialize input array to include the bias value
 		inputArrayWithBias.set(0, 0, 1);
 		inputArrayWithBias.insertIntoThis(1, 0, inputArray);
@@ -575,6 +579,32 @@ public class ProcessingActivity extends Activity {
     }
     
     
+    public boolean isPeriod(Bitmap img){
+    	
+    	double numBlackPixels = 0.0;
+    	
+    	for (int i = 0; i < img.getWidth(); i++){
+    		for (int j = 0; j< img.getHeight(); j++){
+    			if (img.getPixel(i,j) == Color.BLACK){
+    				numBlackPixels ++;
+    			}
+    		}
+    	}
+    	
+    	double imgSize = img.getWidth()*img.getHeight();
+    	
+    	double percentBlack = numBlackPixels/imgSize;
+    	
+    	//Log.d("period", "Percent Black: "+ percentBlack);
+    	
+    	if( percentBlack <= 0.072 && percentBlack >= 0.056){
+    		Log.d("period", "IS PERIOD");
+    		return true;
+    	}
+    	
+    	return false;
+    }
+    
     /**
 	 * scan rows until a black pixel is found
 	 * don't need to worry about left and right margins as storeCharacters() takes care of it
@@ -608,7 +638,7 @@ public class ProcessingActivity extends Activity {
     			isLine = false;
     			endLine = y-1;
     			lineHeight = endLine - startLine;
-    			if (lineHeight > 1){
+    			if (lineHeight > 5){
     				lineNum++;
     				createLineBitmap(startLine, lineNum, firstLine);
     				
@@ -639,13 +669,13 @@ public class ProcessingActivity extends Activity {
         saveBitmapToFile("thresholdline" + lineNum + ".bmp", thresholdBitmap);
         saveBitmapToFile("line" + lineNum + ".bmp", line);
         
-       if(firstChar){
-    		findCharWidth();
+       //if(firstChar){
+    		findCharWidth(lineNum);
     		storeCharacter();
-		}
-        else{     
-        	storeCharacter();
-        }
+		//}
+        //else{     
+        	//storeCharacter();
+        //}
     }
     
   /**
@@ -654,15 +684,15 @@ public class ProcessingActivity extends Activity {
    * the reference character width  
    */
     
-  public void findCharWidth(){  
+  public void findCharWidth(int lineNum){  
 	  int isCharacter = 0;
       int wasBlackPixel = 0;
-      int thresholdVal = 10;
+      int thresholdVal = 0;
       
       //second pass of the isolated line through otsu filter with increased threshold
       Bitmap otsuLine = line.copy(line.getConfig(), true );
       otsuFilter(otsuLine, thresholdVal);
-      saveBitmapToFile("ostuLine" + ".bmp", otsuLine);
+      saveBitmapToFile("ostuLine" + lineNum + ".bmp", otsuLine);
       
       List<Integer> charFreq = new ArrayList<Integer>();
       List<Integer> charWidth = new ArrayList<Integer>();
@@ -744,23 +774,54 @@ public class ProcessingActivity extends Activity {
       int largestFreq = 0;
       int largestWidth = 0;
       
+      ///NEED TO CHECK FOR RIDICULOUSLY LARGE CHARACTER WIDTHS
+      
+      //remove extremely large and small values
+      //compute average and if values lie outside standard deviation, remove them
+      double mean; 
+      double sum = 0.0;
+      double sumSquares = 0.0;
+      double standardDev;
+      
+      for (int i = 0; i< charWidth.size(); i++){
+    	  sum += charWidth.get(i)*charFreq.get(i);
+    	  sumSquares += Math.pow((double)charWidth.get(i)*charFreq.get(i), (double)2);
+      }
+      
+      mean = sum/charWidth.size();
+      standardDev = sumSquares/((double)charWidth.size()) - mean;
+      
+      for (int i = 0; i < charWidth.size(); i++){
+    	  if (charWidth.get(i)>(mean + standardDev) || charWidth.get(i) < (mean - standardDev)){
+    		  charWidth.remove(i);
+    		  charFreq.remove(i);
+    	  }
+      }
+      
       for (int j = 0 ; j < charWidth.size()-3;  j++ ){
     	  int k = j;
-    	  int g;
+    	  int beginningWidthNum, totalWidthNum;
     	  
     	  if (j > charWidth.size()-4){
     		  while (j < charWidth.size()){
-    			  totalFreq += charFreq.get(j);
+    			  if(charWidth.get(j)<(2*largestWidth)){
+    				  totalFreq += charFreq.get(j);  
+    			  }  
     			  j++;
     		  }
     		  if (totalFreq > largestFreq ){
         		  largestFreq = totalFreq;
-        		  g = k;
+        		  beginningWidthNum = k;
+        		  totalWidthNum = k;
+        		  
         		  while( k < charWidth.size()){
-        			  largestWidth += charWidth.get(k);
+        			  if(charWidth.get(j)<(2*largestWidth)){
+	        			  largestWidth += charWidth.get(k);
+	        			  totalWidthNum++;
+        			  }
         			  k++;
         		  }
-        		  largestWidth = largestWidth/(k-g);
+        		  largestWidth = largestWidth/(totalWidthNum - beginningWidthNum);
         	  }
     	  }
     	  else{
@@ -793,7 +854,7 @@ public class ProcessingActivity extends Activity {
         
         int numWhiteColumns = 0;
         Boolean firstCharacter = false;
-        int buffer = characterWidth/4;
+        double buffer = ((double)characterWidth)/4.5;
         
         int tempCharColumns;
         int tempCharRows;
@@ -939,7 +1000,7 @@ public class ProcessingActivity extends Activity {
 			        				
 		        				}
 		        			}
-	
+
 		        			//only recognizes characters if they are larger than one pixel long
 		        			else if (finalCharacterColumns > 1){
 		        				finalCharacterRows = lastCharacterRow - beginningCharacterRow + 1;
@@ -966,6 +1027,11 @@ public class ProcessingActivity extends Activity {
 	        	
 	        }
         }
+        
+        characterName = String.format("%04d", characterNumber)  + ".bmp";
+		createSpaceBitmap(characterName);
+		characterNumber++;
+        
     }
     
     /**
@@ -978,6 +1044,8 @@ public class ProcessingActivity extends Activity {
     	int whitespaceY;
     	int whitespaceX;
     	int characterDimensions;
+    	
+    	
     	
     	//create the square based on whether the height or width of the character is bigger
     	if( finalCharacterRows > finalCharacterColumns ){
@@ -1011,7 +1079,7 @@ public class ProcessingActivity extends Activity {
 	public void createSpaceBitmap(String characterName){
 		//DOESN'T REALLY MATTER THE SIZE, WILL BE RESIZED TO INPUT_WIDTHXINPUT_WIDTH ANYWAYS - JUST NEEDS TO BE SQUARE
 		
-    	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, finalCharacterRows, finalCharacterRows);
+    	charWithWhite = Bitmap.createBitmap(createWhiteBitmap(), 0, 0, finalCharacterRows, finalCharacterRows);
 		Canvas whitespace = new Canvas(charWithWhite);
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE);
         whitespace.drawBitmap(character, finalCharacterRows, finalCharacterRows, null);
@@ -1023,12 +1091,22 @@ public class ProcessingActivity extends Activity {
 	}
     
 	/**
+	 * Creates a white Bitmap object from white.bmp in file system
+	 * @return whiteImage - Bitmap object of only white pixels
+	 */
+	public Bitmap createWhiteBitmap(){
+		Bitmap whiteImage = BitmapFactory.decodeFile("/sdcard/Pictures/Ctrl_F_It/white.bmp");
+		
+		return whiteImage;
+	}
+	
+	/**
   	 * Creates a Bitmap that is a space character for reference to add to the Vector of characters
   	 */
 	public void createReferenceSpace(){
 		//DOESN'T REALLY MATTER THE SIZE, WILL BE RESIZED TO INPUT_WIDTHXINPUT_WIDTH ANYWAYS - JUST NEEDS TO BE SQUARE
 		
-    	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, finalCharacterRows, finalCharacterRows);
+    	charWithWhite = Bitmap.createBitmap(createWhiteBitmap(), 0, 0, finalCharacterRows, finalCharacterRows);
 		Canvas whitespace = new Canvas(charWithWhite);
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE);
         whitespace.drawBitmap(character, finalCharacterRows, finalCharacterRows, null);
@@ -1042,8 +1120,10 @@ public class ProcessingActivity extends Activity {
   	 * @param padding_y the amount of space to add to the character on the top and bottom of the image
   	 * @param imageDimensions the length and width of the image - based on the height or width of character (whichever is larger)
   	 */
-    public void addWhiteSpace( int padding_x, int padding_y, int imageDimensions){        
-    	charWithWhite = Bitmap.createBitmap(finalThresholdImage, 0, 0, imageDimensions, imageDimensions);
+    public void addWhiteSpace( int padding_x, int padding_y, int imageDimensions){    
+    	DisplayMetrics display = new DisplayMetrics();
+    	
+    	charWithWhite = Bitmap.createBitmap(createWhiteBitmap(), 0, 0, imageDimensions, imageDimensions);
     	Canvas whitespace = new Canvas(charWithWhite);
         whitespace.drawRGB(Color.WHITE,Color.WHITE,Color.WHITE); 
         whitespace.drawBitmap(character, padding_x, padding_y, null);
