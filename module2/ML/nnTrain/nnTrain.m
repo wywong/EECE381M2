@@ -2,7 +2,7 @@
 clear ; close all; clc
 
 %% Setup the parameters you will use for this exercise
-input_layer_size  = 12*12;  % 12x12 Input Images of Characters
+input_layer_size  = 30*30;  % 30x30 Input Images of Characters
 hidden_layer_size = 48;   % hidden units
 num_labels = 26;          % A to Z , 1 to 26
 
@@ -38,7 +38,7 @@ fprintf('\nTraining Neural Network... \n')
 options = optimset('MaxIter', 125);
 
 %  You should also try different values of lambda
-lambda = 0.02;
+lambda = 0.08;
 
 % Create "short hand" for the cost function to be minimized
 costFunction = @(p) nnCostFunction(p, ...

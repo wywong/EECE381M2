@@ -9,7 +9,7 @@ python retile.py;
 
 # prepare the data to be used for training and testing
 # train.mat and test.mat are generated
-octave prepData.m;
+octave prepRealData.m;
 
 # verify that train.mat and test.mat were saved correctly
 # displays randomly selected characters in a figure

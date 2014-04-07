@@ -2,7 +2,7 @@
 clear ; close all; clc
 
 %% Setup the parameters you will use for this exercise
-input_layer_size  = 400;  % 20x20 Input Images of Digits
+input_layer_size  = 900;  % 20x20 Input Images of Digits
 num_labels = 26;          % A to Z , 1 to 26
 
 load('train.mat');
