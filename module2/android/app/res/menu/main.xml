@@ -1,0 +1,30 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <!-- Camera action button -->
+    <item android:id="@+id/action_camera"
+          android:icon="@drawable/ic_action_camera"
+          android:title="@string/camera"
+          android:showAsAction="ifRoom" />
+    
+    <!-- Image processing -->
+    <item android:id="@+id/action_processing"
+		  android:icon="@drawable/ic_action_flash_on"
+          android:title="@string/action_processing"
+          android:showAsAction="ifRoom" />
+    
+    <!-- Text editor action button -->
+    <item android:id="@+id/action_editor"
+          android:icon="@drawable/ic_action_edit"
+          android:title="@string/editor"
+          android:showAsAction="ifRoom" />
+    
+    <!-- Help doc action button -->
+    <item android:id="@+id/action_help"
+          android:icon="@drawable/ic_action_help"
+          android:title="@string/help"
+          android:showAsAction="ifRoom" />
+    
+    <!-- Settings, should always be in the overflow -->
+    <item android:id="@+id/action_settings"
+          android:title="@string/action_settings"
+          android:showAsAction="never" />
+</menu>
