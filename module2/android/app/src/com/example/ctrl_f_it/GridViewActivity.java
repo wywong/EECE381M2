@@ -66,7 +66,9 @@ public class GridViewActivity extends Activity {
                 // on selecting grid view image
                 // launch full screen activity
             	
+               // Intent i = new Intent(GridViewActivity.this, ProcessingActivity.class);
                 Intent i = new Intent(GridViewActivity.this, ProcessingActivity.class);
+
                 i.putExtra("position", imagePaths.get(position));
                 GridViewActivity.this.startActivity(i);
         	}
