@@ -4,7 +4,7 @@ imageFiles = dir('tiles/*.bmp');
 X = [];
 y = [];
 
-numFonts = 18;
+numFonts = 23;
 tilesPerFont = 7;
 count = 0;
 
