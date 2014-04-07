@@ -14,6 +14,8 @@ public class TextEditorActivity extends Activity {
     private EditText mBodyText;
     private Long mRowId;
     private NotesDbAdapter mDbHelper;
+    private int textIndex = 0;
+    private String searchTextPrev = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +55,38 @@ public class TextEditorActivity extends Activity {
             }
 
         });
+        
+        searchButton.setOnClickListener(new View.OnClickListener() {
+			
+			public void onClick(View view) {
+				int tt;
+				boolean found = false;
+				
+				String searchText = findViewById(R.id.searchString).toString();
+				if(searchText != searchTextPrev) {
+					searchTextPrev = searchText;
+					textIndex = 0;
+				}
+				
+				int searchSize = searchText.length();
+				String text = mBodyText.getText().toString();
+				
+				for(tt = textIndex; tt < text.length() - searchSize; tt++){
+					if(text.regionMatches(0, searchText, tt, searchSize)){
+						textIndex = tt;
+						found = true;
+						break;
+					}
+				}
+				
+				if(found) {
+					mBodyText.setSelection(textIndex, textIndex+searchSize);
+				}
+				
+				if(tt == text.length() - searchSize)
+					textIndex = 0;
+			}
+		});
     }
     
     @SuppressWarnings("deprecation")
@@ -98,7 +132,7 @@ public class TextEditorActivity extends Activity {
         		mDbHelper.updateNote(mRowId, title, body);
         	}
         } else {
-        	Toast.makeText(getApplicationContext(), "Title cannot be blank", Toast.LENGTH_SHORT);
+        	Toast.makeText(getApplicationContext(), "Title cannot be blank", Toast.LENGTH_SHORT).show();
         }
     }
 }

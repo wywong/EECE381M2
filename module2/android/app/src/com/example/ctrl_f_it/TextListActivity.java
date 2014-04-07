@@ -37,7 +37,6 @@ public class TextListActivity extends ListActivity {
     private static final int DELETE_ID = Menu.FIRST + 1;
 
     private NotesDbAdapter mDbHelper;
-    private Cursor mNotesCursor;
     
     /** Called when the activity is first created. */
     @Override
