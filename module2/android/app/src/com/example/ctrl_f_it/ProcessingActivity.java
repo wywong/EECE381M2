@@ -164,10 +164,9 @@ public class ProcessingActivity extends Activity {
     		if(referenceSpace.sameAs(img)) {
     			text.add(' ');	
     		//DETECT IF PERIOD
-    		}if(isPeriod(img)){
+    		} else if(isPeriod(img)) {
     			text.add('.');
-    		}
-    		else {
+    		} else {
     			text.add(predictChar(theta1, theta2, img));
     		}
     	}
