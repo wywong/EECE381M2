@@ -20,10 +20,13 @@ import org.ejml.simple.SimpleMatrix;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -59,8 +62,6 @@ public class ProcessingActivity extends Activity {
     public int[] characterPixelArray;
     public int characterWidth;
     
-    //public int thresholdConstant = 10;
-
     //String filePath = Environment.getExternalStorageDirectory().getPath() + "/uppercase_bold.bmp";
     String filePath;
 
@@ -92,6 +93,7 @@ public class ProcessingActivity extends Activity {
 	    Log.d("Testing", filePath);
 
 		loadImage();
+		Log.d("SIZE", "bmpToText" + Integer.toString(processedCharacters.size()));
 		initDict();
 		createReferenceSpace();
 		bitmapToText();
@@ -154,6 +156,7 @@ public class ProcessingActivity extends Activity {
      * Iterates through the processedCharacters vector and applies the recognition algorithm, storing the result into the text vector
      */
     public void bitmapToText() {
+    	Log.d("SIZE", "bmpToText" + Integer.toString(processedCharacters.size()));
     	for(int i = 0; i < processedCharacters.size(); i++) {
     		Bitmap img = processedCharacters.get(i);
     		if(referenceSpace.sameAs(img)) {
@@ -462,7 +465,13 @@ public class ProcessingActivity extends Activity {
 	 */
     public void loadImage()
     {  
-        imageFile = BitmapFactory.decodeFile(filePath);
+        imageFile = BitmapFactory.decodeFile(filePath); 
+        
+        //setAlpha(imageFile);
+        
+       // saveBitmapToFile("rotate.bmp", finalThresholdImage);
+        
+        
         
     	height = imageFile.getHeight();
 		width = imageFile.getWidth();
@@ -478,6 +487,28 @@ public class ProcessingActivity extends Activity {
 
         //LINE DETECTION
         detectLine();
+    }
+    
+    /**
+     * Sets the alpha values of all pixels to full opacity in case of rotation
+     * @param img the Bitmap we want to set alpha values of 
+     */
+    public void setAlpha(Bitmap img){
+    	int opaque = 255;
+    	int pixel ;
+    	
+    	
+    	Canvas alph = new Canvas(img);
+    	
+    	for (int i = 0; i < img.getWidth(); i++){
+    		for (int j = 0 ; j< img.getHeight(); j++){
+    			pixel = img.getPixel(i,j);
+    			//alph.drawARGB(opaque, null , Color.green(pixel), Color.blue(pixel));
+    		}
+    	}
+    	
+    	
+    	
     }
     
     
@@ -620,7 +651,7 @@ public class ProcessingActivity extends Activity {
 		        				
 		        				if ( charWidth.contains(finalCharacterColumns) ){
 		        					
-		        					System.out.println("character not in vector");
+		        					//.out.println("character not in vector");
 		        					
 		        					int i = charWidth.indexOf(finalCharacterColumns);
 		        					temp = charFreq.get(i);
@@ -634,8 +665,8 @@ public class ProcessingActivity extends Activity {
 		        					temp = 1;
 		        				}
 		        				
-		        				System.out.println("WIDTH: " + finalCharacterColumns);
-		        				System.out.println("FREQ: " + temp);
+		        				Log.d("CHARACTER", "WIDTH: " + finalCharacterColumns);
+		        				Log.d("CHARACTER","FREQ: " + temp);
 		        				
 		        				lastCharacterRow = 0;
 		        			}
@@ -682,7 +713,7 @@ public class ProcessingActivity extends Activity {
       
       characterWidth = largestWidth;
 
-      System.out.println("CHARACTERWIDTH: " + characterWidth);
+      Log.d("CHARACTER", "CHARACTERWIDTH: " + characterWidth);
       
   }
     
@@ -699,7 +730,7 @@ public class ProcessingActivity extends Activity {
         
         int numWhiteColumns = 0;
         Boolean firstCharacter = false;
-        int buffer = 10;
+        int buffer = characterWidth/4;
         
         int tempCharColumns;
         int tempCharRows;
@@ -763,12 +794,16 @@ public class ProcessingActivity extends Activity {
 		        			//if (finalCharacterColumns > (2*characterWidth - buffer)){
 		        			if (finalCharacterColumns > (characterWidth + buffer)){
 
-		        				System.out.println("finalCharacterColumns > characterWidth");
+		        				//System.out.println("finalCharacterColumns > characterWidth");
 		        				finalCharacterRows = lastCharacterRow - beginningCharacterRow + 1;
 
 		        				//create large bmp and if rows are all black - split in half, otherwise split where white
 		        				characterName = "largeChar" + String.valueOf(characterNumber) + ".bmp";
 		        				createCharacterBitmap(characterName);
+		        				
+		        				//pop bmp from vector
+		        				processedCharacters.remove(processedCharacters.size()-1);
+		        				
 		        				boolean hasWhiteColumn = true;
 		        				int whiteColNum = 0;
 		        				
@@ -788,8 +823,8 @@ public class ProcessingActivity extends Activity {
 		        				//if large bmp has a white column, we split at the white column otherwise, split in half
 		        				if(hasWhiteColumn){
 		        					characterName =  String.format("%04d", characterNumber) + ".bmp";
-			        				System.out.println(characterNumber + ".bmp");
-			        				System.out.println("full width: " + finalCharacterColumns);
+			        				Log.d("CHARACTER", characterNumber + ".bmp");
+			        				Log.d("CHARACTER", "full width: " + finalCharacterColumns);
 	
 			        				finalCharacterColumns = whiteColNum;
 			        					
@@ -798,7 +833,7 @@ public class ProcessingActivity extends Activity {
 			        				
 			        				//second character
 			        				characterName =  String.format("%04d", characterNumber) + ".bmp";
-			        				System.out.println(characterNumber + ".bmp");
+			        				Log.d("CHARACTER",characterNumber + ".bmp");
 	
 			        				beginningCharacterColumn += whiteColNum;
 			        					
@@ -827,8 +862,8 @@ public class ProcessingActivity extends Activity {
 	        						
 	        						for (int chars = 0; chars < numChars; chars++){
 	        							characterName =  String.format("%04d", characterNumber) + ".bmp";
-				        				System.out.println(characterNumber + ".bmp");
-				        				System.out.println("full width: " + finalCharacterColumns);
+	        							Log.d("CHARACTER",characterNumber + ".bmp");
+	        							Log.d("CHARACTER","full width: " + finalCharacterColumns);
 		
 				        				createCharacterBitmap(characterName);
 				        				characterNumber++;
