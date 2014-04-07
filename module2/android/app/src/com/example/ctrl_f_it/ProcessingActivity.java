@@ -75,7 +75,7 @@ public class ProcessingActivity extends Activity {
 	public static final int INPUT_WIDTH = 30;
 	public static final int INPUT = INPUT_WIDTH * INPUT_WIDTH + 4*INPUT_WIDTH;
 	public static final int OUTPUT = 26;
-	public static final int HIDDEN_UNITS = 60;
+	public static final int HIDDEN_UNITS = 48;
 	double[][] theta1 = parseCSV("theta1.csv", HIDDEN_UNITS, INPUT + 1);
 	double[][] theta2 = parseCSV("theta2.csv", OUTPUT, HIDDEN_UNITS + 1);
 	public static final int GRAY_CONSTANT = 0xFF8C8C8C;
