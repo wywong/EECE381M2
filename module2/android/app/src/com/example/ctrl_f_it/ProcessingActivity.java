@@ -71,7 +71,7 @@ public class ProcessingActivity extends Activity {
     public static final int SCALEDDIMENSION = 30;
     
 	public static final int INPUT_WIDTH = 30;
-	public static final int INPUT = INPUT_WIDTH * INPUT_WIDTH;
+	public static final int INPUT = INPUT_WIDTH * INPUT_WIDTH + 4*INPUT_WIDTH;
 	public static final int OUTPUT = 26;
 	public static final int HIDDEN_UNITS = 48;
 	double[][] theta1 = parseCSV("theta1.csv", HIDDEN_UNITS, INPUT + 1);
@@ -203,6 +203,73 @@ public class ProcessingActivity extends Activity {
 			}
 		}
     }
+    
+    public double[][] prepareInput(double [][] imageArray) {
+    	double[][] unrolled = inputUnroll(imageArray, INPUT_WIDTH, INPUT_WIDTH);
+    	double[] C_L = new double[INPUT_WIDTH];
+    	double[] C_R = new double[INPUT_WIDTH];
+    	double[] C_T = new double[INPUT_WIDTH];
+    	double[] C_B = new double[INPUT_WIDTH];
+    	double[][] result = new double[INPUT_WIDTH*INPUT_WIDTH + 4*INPUT_WIDTH][1];
+
+    	double threshold = 0.94;
+    	for(int ii=0; ii < INPUT_WIDTH; ++ii) {
+    		for(int jj = 0; jj < INPUT_WIDTH; ++jj) {
+    			if(imageArray[ii][jj] > threshold) {
+    				C_L[ii] += 1;
+    			} else {
+    				break;
+    			}
+    		}
+    		for(int jj = INPUT_WIDTH-1; jj >= 0; --jj) {
+    			if(imageArray[ii][jj] > threshold) {
+    				C_L[ii] += 1;
+    			} else {
+    				break;
+    			}
+    		}
+    		C_L[ii] /= INPUT_WIDTH;
+    		C_R[ii] /= INPUT_WIDTH;
+    	}
+    	for(int ii=0; ii < INPUT_WIDTH; ++ii) {
+    		for(int jj = 0; jj < INPUT_WIDTH; ++jj) {
+    			if(imageArray[ii][jj] > threshold) {
+    				C_T[ii] += 1;
+    			} else {
+    				break;
+    			}
+    		}
+    		for(int jj = INPUT_WIDTH-1; jj >= 0; --jj) {
+    			if(imageArray[ii][jj] > threshold) {
+    				C_B[ii] += 1;
+    			} else {
+    				break;
+    			}
+    		}
+    		C_T[ii] /= INPUT_WIDTH;
+    		C_B[ii] /= INPUT_WIDTH;
+    	}
+    	for(int ii = 0; ii < INPUT_WIDTH*INPUT_WIDTH; ++ii) {
+    		result[ii][0] = unrolled[ii][0];
+    	}
+    	int offset = INPUT_WIDTH * INPUT_WIDTH;
+    	for(int ii = 0; ii < INPUT_WIDTH; ++ii) {
+    		result[offset+ii][0] = C_L[ii];
+    	}
+    	offset += INPUT_WIDTH;
+    	for(int ii = 0; ii < INPUT_WIDTH; ++ii) {
+    		result[offset+ii][0] = C_R[ii];
+    	}
+    	offset += INPUT_WIDTH;
+    	for(int ii = 0; ii < INPUT_WIDTH; ++ii) {
+    		result[offset+ii][0] = C_T[ii];
+    	}
+    	offset += INPUT_WIDTH;
+    	for(int ii = 0; ii < INPUT_WIDTH; ++ii) {
+    		result[offset+ii][0] = C_B[ii];
+    	}
+    	return result;
+    }
 
 	/**
 	 * Applies feed forward propagation to predict the character that has the highest probability of matching the input
@@ -214,7 +281,7 @@ public class ProcessingActivity extends Activity {
 	public char predictChar(double[][] theta1, double[][] theta2, Bitmap character) {
 		SimpleMatrix theta1Array = new SimpleMatrix(theta1);
 		SimpleMatrix theta2Array = new SimpleMatrix(theta2);
-		double[][] input = inputUnroll(bmpToArray(character), INPUT_WIDTH, INPUT_WIDTH);
+		double[][] input = prepareInput(bmpToArray(character));
 		SimpleMatrix inputArray = new SimpleMatrix(input);
 		SimpleMatrix inputArrayWithBias = new SimpleMatrix(INPUT + 1, 1);
 		SimpleMatrix h1Array;
@@ -222,10 +289,6 @@ public class ProcessingActivity extends Activity {
 		SimpleMatrix outputArray;
 		double sigmoidVal;
 		int bestMatch = 0;
-
-		for(int i = 0; i < INPUT; i++) {
-			Log.d("image", Double.toString(input[i][0]));
-		}
 		
 		//Initialize input array to include the bias value
 		inputArrayWithBias.set(0, 0, 1);
@@ -305,7 +368,7 @@ public class ProcessingActivity extends Activity {
 	 * @return Unrolled column vector of the input (size INPUT x 1)
 	 */
 	public double[][] inputUnroll(double[][] input, int rows, int columns) {
-		double[][] unrolledInput = new double[INPUT][1];
+		double[][] unrolledInput = new double[INPUT_WIDTH*INPUT_WIDTH][1];
 		int k = 0;
 
 		for(int j = 0; j < columns; j++) {

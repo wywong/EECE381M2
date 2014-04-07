@@ -3,7 +3,7 @@ clear ; close all; clc
 
 %% Setup the parameters you will use for this exercise
 img_dim = 30;
-input_layer_size  = (img_dim*img_dim) + 2*img_dim + 2*img_dim;
+input_layer_size  = (img_dim*img_dim) + 4* img_dim;
 hidden_layer_size = 48;   % hidden units
 num_labels = 26;          % A to Z , 1 to 26
 
