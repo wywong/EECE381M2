@@ -54,7 +54,7 @@ public class MainActivity extends Activity {
     }
     
     public void openEditor(){
-    	Intent intent =  new Intent(this, EditorActivity.class);
+    	Intent intent =  new Intent(this, TextListActivity.class);
     	startActivity(intent);
     }
     

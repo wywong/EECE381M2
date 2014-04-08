@@ -25,7 +25,7 @@
     <string name="label_port">Port:</string>
     <string name="connect">Connect</string>
     <string name="title_activity_help">Help Document</string>
-    
+
     <string name="help1">Welcome to Ctrl F It!</string>
     <string name="help2">To recognize text from via your device\'s camera, first select the camera icon from the main activity bar.</string>
     <string name="help3">Next, take an image of the text you wish to recognize, crop it, and use the rotate image and filter buttons to 
@@ -33,7 +33,13 @@
     <string name="help4">Select confirm once the text is straight relative to the overlapping lines and the filter preview shows no 
         excessive amounts of noise</string>
     <string name="help5">You can then select the lighting bolt from the main activity bar to select your editted image and begin processing it</string>
-    
-    
+
+    <string name="no_documents">No Documents</string>
+    <string name="menu_insert">Add Document</string>
+    <string name="menu_delete">Delete Document</string>
+    <string name="title">Title</string>
+    <string name="body">Body</string>
+    <string name="edit_text">Edit Text</string>
+    <string name="search">Search</string>
 
 </resources>
