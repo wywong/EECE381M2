@@ -1,10 +1,14 @@
 package com.example.ctrl_f_it;
 
+import java.io.IOException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,21 +22,30 @@ public class MainActivity extends Activity {
 	public static String IPADDRESS;
 	public static int PORT;
 	public static Socket sock = null;
-	private Button btnSave;
+	private Button btnConnect;
+	private Button btnDisconnect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        btnSave = (Button) findViewById(R.id.button_ip_save);
+        btnConnect = (Button) findViewById(R.id.button_connect);
+        btnDisconnect = (Button) findViewById(R.id.button_disconnect);
         
-        btnSave.setOnClickListener(new View.OnClickListener() {
- 
-            @Override
-            public void onClick(View v) {
-                saveIP();
+        btnConnect.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+            	openSocket();
             }
+
         });
+        
+        btnDisconnect.setOnClickListener(new View.OnClickListener() {
+			
+			public void onClick(View view) {
+				closeSocket();
+			}
+		});
     }
 
     @Override
@@ -90,11 +103,6 @@ public class MainActivity extends Activity {
     	startActivity(intent);
     }
     
-    private void saveIP() {
-    	IPADDRESS = getConnectToIP();
-    	PORT = getConnectToPort();
-    }
-    
     // Construct an IP address from the four boxes
  	public String getConnectToIP() {
  		String addr = "";
@@ -119,5 +127,62 @@ public class MainActivity extends Activity {
  		port = Integer.parseInt(text_port.getText().toString());
 
  		return port;
+ 	}
+ 	
+ 	public void openSocket() {
+		//MyApplication app = (MyApplication) getApplication();
+
+		// Make sure the socket is not already opened 		
+		if (sock != null && sock.isConnected() && !sock.isClosed()) {
+			Log.d("SOCKET", "Socket already open");
+			
+			//LOG CAT ERROR MESSAGE
+			return;
+		}
+		
+		// open the socket.  SocketConnect is a new subclass
+	    // (defined below).  This creates an instance of the subclass
+		// and executes the code in it.		
+		new SocketConnect().execute((Void) null);
+	}
+    
+    public class SocketConnect extends AsyncTask<Void, Void, Socket> {
+
+		// The main parcel of work for this thread.  Opens a socket
+		// to connect to the specified IP.
+		
+		protected Socket doInBackground(Void... voids) {
+			Socket s = null;
+			String ip = getConnectToIP();
+			Integer port = getConnectToPort();
+
+			try {
+				s = new Socket(ip, port);
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return s;
+		}
+		
+		// After executing the doInBackground method, this is 
+		// automatically called, in the UI (main) thread to store
+		// the socket in this app's persistent storage
+		
+		protected void onPostExecute(Socket s) {
+			sock = s;
+		}
+    }
+    
+    // Called when the user closes a socket
+ 	public void closeSocket() {
+ 		Socket s = sock;
+ 		try {
+ 			s.getOutputStream().close();
+ 			s.close();
+ 		} catch (IOException e) {
+ 			e.printStackTrace();
+ 		}
  	}
 }

@@ -44,8 +44,8 @@
 			android:layout_height="wrap_content" 
 			android:layout_weight="1"/>
 		
-		<Button android:id="@+id/save" 
-		  	android:text="@string/save"
+		<Button android:id="@+id/retrieve" 
+		  	android:text="@string/retrieve"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content" 
 			android:layout_weight="1"/>
