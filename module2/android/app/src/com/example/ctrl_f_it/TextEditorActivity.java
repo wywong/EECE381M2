@@ -21,6 +21,8 @@ public class TextEditorActivity extends Activity {
     private EditText mBodyText;
     private Long mRowId;
     private NotesDbAdapter mDbHelper;
+    private int byteCount;
+    private int bytesToBeSent;
     
     private Button confirmButton;
     private Button searchButton;
@@ -29,6 +31,8 @@ public class TextEditorActivity extends Activity {
     
     private static char textEditorSendCode = (char)0;
     private static char textEditorRetrCode = (char)1;
+    
+    
     public int textIndex = 0;
     public String searchTextPrev = null;
     public boolean recieveDone = false;
@@ -191,13 +195,13 @@ public class TextEditorActivity extends Activity {
     
     private void sendBody() {
     	sendMessage(textEditorSendCode);
-    	while(recieveDone);
+    	while(!recieveDone);
     	recieveDone = false;
     }
     
     private void retrBody() {
     	sendMessage(textEditorRetrCode);
-    	while(recieveDone);
+    	while(!recieveDone);
     	recieveDone = false;
     }
        
@@ -243,7 +247,7 @@ public class TextEditorActivity extends Activity {
 					int bytes_avail = in.available();
 					if (bytes_avail > 0) {
 						
-						// If so, read them in and create a sring
+						// If so, read them in and create a string
 						
 						byte buf[] = new byte[bytes_avail];
 						in.read(buf);
