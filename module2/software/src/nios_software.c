@@ -16,7 +16,6 @@ int main()
 	int i;
 	unsigned char data;
 	unsigned char parity;
-	unsigned char message[] = "EECE381 is so much fun";
 	char* buffer;
 	int bufSize = 0;
 	initBuffers();
@@ -36,10 +35,16 @@ int main()
 		printf("Waiting for data to come from the Middleman\n");
 
 		while (alt_up_rs232_get_used_space_in_read_FIFO(uart) == 0) ;
-
 		// First byte is the number of characters in our message
 		alt_up_rs232_read_data(uart, &data, &parity);
-		int num_to_receive = (int)data;
+		int num_to_receive1 = (int)data;
+
+		while (alt_up_rs232_get_used_space_in_read_FIFO(uart) == 0) ;
+		// First byte is the number of characters in our message
+		alt_up_rs232_read_data(uart, &data, &parity);
+		int num_to_receive2 = (int)data;
+
+		int num_to_receive = (num_to_receive2 << 8) | num_to_receive1;
 
 		// action code
 		// 0 push
@@ -51,7 +56,6 @@ int main()
 
 		if(actionCode == PULL) {
 			if(bufSize == 0) {
-				//BEGIN SENDING MESSAGE FROM DE2 TO ANDROID (RETURNS ORIGINAL MESSAGE)
 				printf("Clearing read buffer to start\n");
 
 				while (alt_up_rs232_get_used_space_in_read_FIFO(uart)) {
@@ -63,7 +67,7 @@ int main()
 				// send msg size of 0
 				alt_up_rs232_write_data(uart, (unsigned char) 0);
 			} else {
-				//BEGIN SENDING MESSAGE FROM DE2 TO ANDROID (RETURNS ORIGINAL MESSAGE)
+
 				printf("Clearing read buffer to start\n");
 
 				while (alt_up_rs232_get_used_space_in_read_FIFO(uart)) {
@@ -122,7 +126,7 @@ int main()
 				writeString(pch, 0, row);
 				printf("%s\n", pch);
 				pch = strtok(NULL, "\n");
-				row += 5;
+				row += 1;
 			}
 
 			printf("\n");

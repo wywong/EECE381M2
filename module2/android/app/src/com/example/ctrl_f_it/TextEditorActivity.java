@@ -54,12 +54,6 @@ public class TextEditorActivity extends Activity {
         sendButton = (Button) findViewById(R.id.send);
         retrieveButton = (Button) findViewById(R.id.retrieve);
         
-    	// Set up a timer task.  We will use the timer to check the
- 		// input queue every 500 ms
- 		TCPReadTimerTask tcp_task = new TCPReadTimerTask();
- 		Timer tcp_timer = new Timer();
- 		tcp_timer.schedule(tcp_task, 3000, 500);
-        
         if(savedInstanceState == null)
         	mRowId =  null;
         else
@@ -101,6 +95,11 @@ public class TextEditorActivity extends Activity {
         retrieveButton.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
+            	// Set up a timer task.  We will use the timer to check the
+         		// input queue every 500 ms
+         		TCPReadTimerTask tcp_task = new TCPReadTimerTask();
+         		Timer tcp_timer = new Timer();
+         		tcp_timer.schedule(tcp_task, 3000, 500);
                 retrBody();
             }
 
@@ -215,9 +214,10 @@ public class TextEditorActivity extends Activity {
 		// Create an array of bytes.  First byte will be the
 		// message length, and the next ones will be the message
 		
-		byte buf[] = new byte[msg.length() + 2];
+		byte buf[] = new byte[msg.length() + 3];
 		buf[0] = (byte) msg.length();
-		buf[1] = (byte) sendCode;
+		buf[1] = (byte) (msg.length() >> 8);
+		buf[2] = (byte) sendCode;
 		System.arraycopy(msg.getBytes(), 0, buf, 2, msg.length());
 
 		// Now send through the output stream of the socket
@@ -226,7 +226,7 @@ public class TextEditorActivity extends Activity {
 		try {
 			out = MainActivity.sock.getOutputStream();
 			try {
-				out.write(buf, 0, msg.length() + 2);
+				out.write(buf, 0, msg.length() + 3);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
