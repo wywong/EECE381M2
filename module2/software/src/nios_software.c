@@ -58,7 +58,10 @@ int main()
 
 				printf("Sending the message to the Middleman\n");
 
+				// send msg size of 0
 				alt_up_rs232_write_data(uart, (unsigned char) 0);
+				// send action code for pull
+				alt_up_rs232_write_data(uart, (unsigned char) PULL);
 			} else {
 				//BEGIN SENDING MESSAGE FROM DE2 TO ANDROID (RETURNS ORIGINAL MESSAGE)
 				printf("Clearing read buffer to start\n");
@@ -72,6 +75,9 @@ int main()
 				// Start with the number of bytes in our message
 
 				alt_up_rs232_write_data(uart, (unsigned char) strlen(buffer));
+
+				// send action code for pull
+				alt_up_rs232_write_data(uart, (unsigned char) PULL);
 
 				// Now send the actual message to the Middleman
 
@@ -100,6 +106,17 @@ int main()
 				buffer[i] = (char) data;
 			}
 			buffer[i] = '\0';
+
+			while (alt_up_rs232_get_used_space_in_read_FIFO(uart)) {
+				alt_up_rs232_read_data(uart, &data, &parity);
+			}
+
+			printf("Sending the message to the Middleman\n");
+
+			// send msg size of 0
+			alt_up_rs232_write_data(uart, (unsigned char) 0);
+			// send action code for pull
+			alt_up_rs232_write_data(uart, (unsigned char) PUSH);
 
 			//write string to vga display
 			writeString(buffer, 0, 0);
