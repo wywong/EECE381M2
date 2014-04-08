@@ -195,14 +195,14 @@ public class TextEditorActivity extends Activity {
     
     private void sendBody() {
     	sendMessage(textEditorSendCode);
-    	while(!recieveDone);
-    	recieveDone = false;
+    	//while(!recieveDone);
+    	//recieveDone = false;
     }
     
     private void retrBody() {
     	sendMessage(textEditorRetrCode);
-    	while(!recieveDone);
-    	recieveDone = false;
+    	//while(!recieveDone);
+    	//recieveDone = false;
     }
        
     public void sendMessage(char sendCode) {
@@ -226,7 +226,7 @@ public class TextEditorActivity extends Activity {
 		try {
 			out = MainActivity.sock.getOutputStream();
 			try {
-				out.write(buf, 0, msg.length() + 1);
+				out.write(buf, 0, msg.length() + 2);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -254,6 +254,7 @@ public class TextEditorActivity extends Activity {
 
 						final String s = new String(buf, 0, bytes_avail, "US-ASCII");
 		
+						//int x = (int) s.charAt(0);
 						// As explained in the tutorials, the GUI can not be
 						// updated in an asyncrhonous task.  So, update the GUI
 						// using the UI thread.

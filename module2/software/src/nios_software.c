@@ -45,6 +45,8 @@ int main()
 		alt_up_rs232_read_data(uart, &data, &parity);
 
 		buffer[i] = (char) data;
+
+		printf ("%c", buffer[i]);
 	}
 	buffer[i] = '\0';
 
@@ -52,7 +54,7 @@ int main()
 	writeString(buffer, 0, 0);
 	printf("\n");
 
-	//BEGIN SENDING MESSAGE FROM DE2 TO ANDROID (RETURNS ORIGINAL MESSAGE)
+	/*//BEGIN SENDING MESSAGE FROM DE2 TO ANDROID (RETURNS ORIGINAL MESSAGE)
 	printf("Clearing read buffer to start\n");
 
 	while (alt_up_rs232_get_used_space_in_read_FIFO(uart)) {
@@ -72,7 +74,7 @@ int main()
 	}
 
 	printf("Message Echo Complete\n");
-
+*/
 	free(buffer);
 
 	return 0;
