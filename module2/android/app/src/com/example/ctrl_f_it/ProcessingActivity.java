@@ -865,7 +865,7 @@ public class ProcessingActivity extends Activity {
         
         int numWhiteColumns = 0;
         Boolean firstCharacter = false;
-        double buffer = ((double)characterWidth)/4.0;
+        double buffer = ((double)characterWidth)/4.5;
         
         int tempCharColumns;
         int tempCharRows;
