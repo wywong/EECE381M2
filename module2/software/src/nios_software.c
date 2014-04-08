@@ -49,7 +49,6 @@ int main()
 
 		if(actionCode == PULL) {
 			if(bufSize == 0) {
-				char* empty = "0";
 				//BEGIN SENDING MESSAGE FROM DE2 TO ANDROID (RETURNS ORIGINAL MESSAGE)
 				printf("Clearing read buffer to start\n");
 
@@ -59,14 +58,7 @@ int main()
 
 				printf("Sending the message to the Middleman\n");
 
-				// Start with the number of bytes in our message
-
-				alt_up_rs232_write_data(uart, (unsigned char) strlen(buffer));
-
-				// Now send the actual message to the Middleman
-				for (i = 0; i < strlen(empty); i++) {
-						alt_up_rs232_write_data(uart, empty[i]);
-				}
+				alt_up_rs232_write_data(uart, (unsigned char) 0);
 			} else {
 				//BEGIN SENDING MESSAGE FROM DE2 TO ANDROID (RETURNS ORIGINAL MESSAGE)
 				printf("Clearing read buffer to start\n");
