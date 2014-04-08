@@ -10,6 +10,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.net.Uri;
@@ -137,6 +138,7 @@ public class camActivity extends Activity {
 	  * Save image captured and set public string to be most recent picture path
 	  */
 	 private void saveImage() {
+		 rotatedBitmap = removeTransparency(rotatedBitmap);
 	     filePath = fileUri.getPath();
 	     bmpToFile(rotatedBitmap, filePath);
 	 }
@@ -203,6 +205,18 @@ public class camActivity extends Activity {
         }
     }
 
+	 
+	 /**
+	  * removes transparencies from rotated image
+	  */
+	 private Bitmap removeTransparency(Bitmap rotatedBitmap){
+		 Bitmap newBitmap = Bitmap.createBitmap(rotatedBitmap, 0,0 , rotatedBitmap.getWidth(), rotatedBitmap.getHeight());
+		 Canvas background = new Canvas(newBitmap);
+		 background.drawARGB(255, Color.WHITE, Color.WHITE, Color.WHITE);
+		 background.drawBitmap(rotatedBitmap,0 ,0 , null);
+		 return newBitmap;	 
+	 }
+	 
 
 	 /* File store helper functions */
 	 /**
