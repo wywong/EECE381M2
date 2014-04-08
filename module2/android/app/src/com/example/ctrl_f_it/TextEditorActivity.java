@@ -1,5 +1,7 @@
 package com.example.ctrl_f_it;
 
+import java.util.Locale;
+
 import android.app.Activity;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -59,38 +61,7 @@ public class TextEditorActivity extends Activity {
         searchButton.setOnClickListener(new View.OnClickListener() {
 			
 			public void onClick(View view) {
-				int tt;
-				boolean found = false;
-				
-				String searchText = ((EditText)findViewById(R.id.searchString)).getText().toString();
-				if(!searchText.equals(searchTextPrev) ) {
-					searchTextPrev = searchText;
-					textIndex = 0;
-				}
-				
-				String text = mBodyText.getText().toString();
-				int searchSize = searchText.length();
-				int bodySize = text.length() - 1;
-				
-				for(tt = textIndex; tt < bodySize - searchSize; tt++){
-					if(text.regionMatches(tt, searchText, 0, searchSize)){
-						tt++;
-						textIndex = tt;
-						found = true;
-						break;
-					}
-				}
-				
-				if(found) {
-					mBodyText.setSelection(textIndex - 1, textIndex + searchSize - 1);
-				}
-				
-				found = false;
-				
-				if(tt == text.length() - searchSize) {
-					textIndex = 0;
-					Toast.makeText(getApplicationContext(), "End of File Reached", Toast.LENGTH_SHORT).show();
-				}
+				searchBody();
 			}
 		});
     }
@@ -140,5 +111,44 @@ public class TextEditorActivity extends Activity {
         } else {
         	Toast.makeText(getApplicationContext(), "Title cannot be blank", Toast.LENGTH_SHORT).show();
         }
+    }
+    
+    private void searchBody() {
+    	int tt;
+		boolean found = false;
+		
+		String searchText = ((EditText)findViewById(R.id.searchString)).getText().toString();
+		if(!searchText.equals(searchTextPrev) ) {
+			searchTextPrev = searchText;
+			textIndex = 0;
+		}
+		
+		String text = mBodyText.getText().toString();
+		
+		searchText = searchText.toLowerCase(Locale.CANADA);
+		text = text.toLowerCase(Locale.CANADA);
+		
+		int searchSize = searchText.length();
+		int bodySize = text.length();
+		
+		for(tt = textIndex; tt < bodySize - searchSize + 1; tt++){
+			if(text.regionMatches(tt, searchText, 0, searchSize)){
+				tt++;
+				textIndex = tt;
+				found = true;
+				break;
+			}
+		}
+		
+		if(found) {
+			mBodyText.setSelection(textIndex - 1, textIndex + searchSize - 1);
+		}
+		
+		found = false;
+		
+		if(tt >= bodySize - searchSize) {
+			textIndex = 0;
+			Toast.makeText(getApplicationContext(), "End of File Reached", Toast.LENGTH_SHORT).show();
+		}
     }
 }
