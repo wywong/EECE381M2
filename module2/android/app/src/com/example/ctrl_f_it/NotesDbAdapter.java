@@ -16,6 +16,9 @@
 
 package com.example.ctrl_f_it;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -43,6 +46,9 @@ public class NotesDbAdapter {
     private static final String TAG = "NotesDbAdapter";
     private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
+    
+    public static Set<Long> keyIDs = new HashSet<Long>();
+
 
     /**
      * Database creation sql statement
@@ -121,8 +127,11 @@ public class NotesDbAdapter {
         ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_TITLE, title);
         initialValues.put(KEY_BODY, body);
+        long rowId = mDb.insert(DATABASE_TABLE, null, initialValues);
+        
+        keyIDs.add(rowId);
 
-        return mDb.insert(DATABASE_TABLE, null, initialValues);
+        return rowId;
     }
 
     /**
@@ -132,7 +141,7 @@ public class NotesDbAdapter {
      * @return true if deleted, false otherwise
      */
     public boolean deleteNote(long rowId) {
-
+    	keyIDs.remove(Long.valueOf(rowId));
         return mDb.delete(DATABASE_TABLE, KEY_ROWID + "=" + rowId, null) > 0;
     }
 

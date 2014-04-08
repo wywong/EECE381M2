@@ -1,5 +1,9 @@
 package com.example.ctrl_f_it;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Locale;
+
 import android.app.Activity;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -14,6 +18,7 @@ public class TextEditorActivity extends Activity {
     private EditText mBodyText;
     private Long mRowId;
     private NotesDbAdapter mDbHelper;
+    private char textEditorTransCode = (char) 3;
     public int textIndex = 0;
     public String searchTextPrev = null;
 
@@ -31,6 +36,8 @@ public class TextEditorActivity extends Activity {
 
         Button confirmButton = (Button) findViewById(R.id.confirm);
         Button searchButton = (Button) findViewById(R.id.search);
+        Button saveButton = (Button) findViewById(R.id.save);
+        Button sendButton = (Button) findViewById(R.id.send);
         
         if(savedInstanceState == null)
         	mRowId =  null;
@@ -59,40 +66,25 @@ public class TextEditorActivity extends Activity {
         searchButton.setOnClickListener(new View.OnClickListener() {
 			
 			public void onClick(View view) {
-				int tt;
-				boolean found = false;
-				
-				String searchText = ((EditText)findViewById(R.id.searchString)).getText().toString();
-				if(!searchText.equals(searchTextPrev) ) {
-					searchTextPrev = searchText;
-					textIndex = 0;
-				}
-				
-				String text = mBodyText.getText().toString();
-				int searchSize = searchText.length();
-				int bodySize = text.length() - 1;
-				
-				for(tt = textIndex; tt < bodySize - searchSize; tt++){
-					if(text.regionMatches(tt, searchText, 0, searchSize)){
-						tt++;
-						textIndex = tt;
-						found = true;
-						break;
-					}
-				}
-				
-				if(found) {
-					mBodyText.setSelection(textIndex - 1, textIndex + searchSize - 1);
-				}
-				
-				found = false;
-				
-				if(tt == text.length() - searchSize) {
-					textIndex = 0;
-					Toast.makeText(getApplicationContext(), "End of File Reached", Toast.LENGTH_SHORT).show();
-				}
+				searchBody();
 			}
 		});
+        
+        saveButton.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                saveState();
+            }
+
+        });
+        
+        sendButton.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                sendMessage(textEditorTransCode);
+            }
+
+        });
     }
     
     @SuppressWarnings("deprecation")
@@ -141,4 +133,73 @@ public class TextEditorActivity extends Activity {
         	Toast.makeText(getApplicationContext(), "Title cannot be blank", Toast.LENGTH_SHORT).show();
         }
     }
+    
+    private void searchBody() {
+    	int tt;
+		boolean found = false;
+		
+		String searchText = ((EditText)findViewById(R.id.searchString)).getText().toString();
+		if(!searchText.equals(searchTextPrev) ) {
+			searchTextPrev = searchText;
+			textIndex = 0;
+		}
+		
+		String text = mBodyText.getText().toString();
+		
+		searchText = searchText.toLowerCase(Locale.CANADA);
+		text = text.toLowerCase(Locale.CANADA);
+		
+		int searchSize = searchText.length();
+		int bodySize = text.length();
+		
+		for(tt = textIndex; tt < bodySize - searchSize + 1; tt++){
+			if(text.regionMatches(tt, searchText, 0, searchSize)){
+				tt++;
+				textIndex = tt;
+				found = true;
+				break;
+			}
+		}
+		
+		if(found) {
+			mBodyText.setSelection(textIndex - 1, textIndex + searchSize - 1);
+		}
+		
+		found = false;
+		
+		if(tt >= bodySize - searchSize) {
+			textIndex = 0;
+			Toast.makeText(getApplicationContext(), "End of File Reached", Toast.LENGTH_SHORT).show();
+		}
+	}
+       
+    public void sendMessage(char sendCode) {
+		//MyApplication app = (MyApplication) getApplication();
+		// Get the message from the box
+		
+		String msg = ((EditText) findViewById(R.id.body)).getText().toString();
+
+		// Create an array of bytes.  First byte will be the
+		// message length, and the next ones will be the message
+		
+		byte buf[] = new byte[msg.length() + 2];
+		buf[0] = (byte) msg.length();
+		buf[1] = (byte) sendCode;
+		System.arraycopy(msg.getBytes(), 0, buf, 2, msg.length());
+
+		// Now send through the output stream of the socket
+		
+		OutputStream out;
+		try {
+			out = MainActivity.sock.getOutputStream();
+			try {
+				out.write(buf, 0, msg.length() + 1);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 }

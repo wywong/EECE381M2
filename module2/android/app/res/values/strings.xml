@@ -21,12 +21,16 @@
     <string name="label_ip">IP:</string>
     <string name="label_port">Port:</string>
     <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
     <string name="no_documents">No Documents</string>
     <string name="menu_insert">Add Document</string>
     <string name="menu_delete">Delete Document</string>
     <string name="title">Title</string>
     <string name="body">Body</string>
     <string name="edit_text">Edit Text</string>
-    <string name="search">Search</string>
-    
+    <string name="search">Ctrl F It</string>
+    <string name="send">Send</string>
+    <string name="save">Save</string>
+    <string name="connection_prompt">Set IP and Socket number</string>
+    <string name="sync">Sync</string>    
 </resources>
