@@ -408,7 +408,7 @@ public class ProcessingActivity extends Activity {
 	 * @param pixel Integer value that contains ARGB information
 	 * @return Grayscale value by taking the average of the RGB values
 	 */
-	public int rgbToGrayscale(int pixel) {
+	public static int rgbToGrayscale(int pixel) {
 		int R = Color.red(pixel);
 		int G = Color.green(pixel);
 		int B = Color.blue(pixel);
@@ -421,7 +421,7 @@ public class ProcessingActivity extends Activity {
 	 * Applies the   filtering algorithm to binarize the input image
 	 * @param image Image to be filtered
 	 */
-	public void otsuFilter(Bitmap image, int thresholdConstant) {
+	public static void otsuFilter(Bitmap image, int thresholdConstant) {
 		int[] histogram = new int[256];
 		int grayscaleVal;
 		int total = image.getHeight() * image.getWidth();
