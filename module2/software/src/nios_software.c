@@ -117,7 +117,15 @@ int main()
 
 			//write string to vga display
 			clearCharBuff();
-			writeString(buffer, 0, 0);
+			int row = 0;
+			char *pch;
+			pch = strtok(buffer, "\n");
+			while(pch != NULL) {
+				writeString(pch, 0, row);
+				printf("%s\n", pch);
+				pch = strtok(NULL, "\n");
+				row += 5;
+			}
 			printf("%d\n", (int) buffer[0]);
 			printf("\n");
 		}
