@@ -74,10 +74,6 @@ int main()
 				printf("Sending the message to the Middleman\n");
 
 
-				// Start with the number of bytes in our message
-
-				alt_up_rs232_write_data(uart, (unsigned char) strlen(buffer));
-
 				// Now send the actual message to the Middleman
 
 				for (i = 0; i < strlen(buffer); i++) {
@@ -91,7 +87,7 @@ int main()
 				free(buffer);
 			}
 			//create a buffer the same as the size of the message sent from android
-			buffer = (unsigned char*) malloc(num_to_receive * sizeof(unsigned char));
+			buffer = (char*) malloc(num_to_receive * sizeof(unsigned char));
 
 			bufSize = num_to_receive;
 
@@ -119,14 +115,16 @@ int main()
 			clearCharBuff();
 			int row = 0;
 			char *pch;
-			pch = strtok(buffer, "\n");
+			char *dispBuf = (char*) malloc(num_to_receive * sizeof(unsigned char));
+			strcpy(dispBuf, buffer);
+			pch = strtok(dispBuf, "\n");
 			while(pch != NULL) {
 				writeString(pch, 0, row);
 				printf("%s\n", pch);
 				pch = strtok(NULL, "\n");
 				row += 5;
 			}
-			printf("%d\n", (int) buffer[0]);
+
 			printf("\n");
 		}
 

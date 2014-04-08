@@ -261,8 +261,8 @@ public class TextEditorActivity extends Activity {
 						
 						runOnUiThread(new Runnable() {
 							public void run() {
-								//EditText et = (EditText) findViewById(R.id.RecvdMessage);
-								//et.setText(s);
+								EditText et = (EditText) findViewById(R.id.body);
+								et.setText(s);
 							}
 						});
 						
