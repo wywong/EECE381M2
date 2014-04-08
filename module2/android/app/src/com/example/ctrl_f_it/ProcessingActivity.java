@@ -669,13 +669,12 @@ public class ProcessingActivity extends Activity {
         saveBitmapToFile("thresholdline" + lineNum + ".bmp", thresholdBitmap);
         saveBitmapToFile("line" + lineNum + ".bmp", line);
         
-       //if(firstChar){
+       if(firstChar){
     		findCharWidth(lineNum);
     		storeCharacter();
-		//}
-        //else{     
-        	//storeCharacter();
-        //}
+		} else {     
+        	storeCharacter();
+        }
     }
     
   /**
@@ -854,7 +853,7 @@ public class ProcessingActivity extends Activity {
         
         int numWhiteColumns = 0;
         Boolean firstCharacter = false;
-        double buffer = ((double)characterWidth)/4.5;
+        double buffer = ((double)characterWidth)/5.0;
         
         int tempCharColumns;
         int tempCharRows;
@@ -909,15 +908,19 @@ public class ProcessingActivity extends Activity {
 	        			
 	        			
 	        			//if (tempCharColumns > largestCharWidth*2/3){
-		        		if (tempCharColumns > characterWidth*3/4){
+		        		if (tempCharColumns > characterWidth*3.0/4.0){
 
 		        			isCharacter = 0;
 		        			
 		        			finalCharacterColumns = x - beginningCharacterColumn;
 		        			
+		        			//Log.d("CHARACTER", "characterwidth + buffer = " + (characterWidth + buffer));
+		        			//Log.d("CHARACTER", "character columns = " + (finalCharacterColumns));
+		        			
 		        			//if (finalCharacterColumns > (2*characterWidth - buffer)){
-		        			if (finalCharacterColumns > (characterWidth + buffer)){
-
+		        			if (((double)finalCharacterColumns) > (characterWidth + buffer)){
+		        				
+		        				
 		        				//System.out.println("finalCharacterColumns > characterWidth");
 		        				finalCharacterRows = lastCharacterRow - beginningCharacterRow + 1;
 
