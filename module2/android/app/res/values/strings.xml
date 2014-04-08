@@ -14,8 +14,8 @@
     <string name="action_processing">Process Image</string>
     <string name="hello_world">Hello world</string>
     <string name="title_activity_grid_view">Choose an image to process</string>
-	<string name="rotateLeft">Rotate Left</string>
-	<string name="rotateRight">Rotate Right</string>
+    <string name="rotateLeft">Rotate Left</string>
+    <string name="rotateRight">Rotate Right</string>
     <string name="title_activity_editor">Text Editor</string>
     <string name="label_myip">My IP:</string>
     <string name="play">Play</string>
@@ -24,5 +24,16 @@
     <string name="label_ip">IP:</string>
     <string name="label_port">Port:</string>
     <string name="connect">Connect</string>
+    <string name="title_activity_help">Help Document</string>
+    
+    <string name="help1">Welcome to Ctrl F It!</string>
+    <string name="help2">To recognize text from via your device\'s camera, first select the camera icon from the main activity bar.</string>
+    <string name="help3">Next, take an image of the text you wish to recognize, crop it, and use the rotate image and filter buttons to 
+        optimize the image.</string>
+    <string name="help4">Select confirm once the text is straight relative to the overlapping lines and the filter preview shows no 
+        excessive amounts of noise</string>
+    <string name="help5">You can then select the lighting bolt from the main activity bar to select your editted image and begin processing it</string>
+    
+    
 
 </resources>

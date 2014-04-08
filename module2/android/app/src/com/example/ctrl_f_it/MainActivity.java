@@ -59,8 +59,8 @@ public class MainActivity extends Activity {
     }
     
     public void openHelp(){
-    	Toast t = Toast.makeText(getApplicationContext(), "I would now call the help function", Toast.LENGTH_LONG);
-    	t.show();
+    	Intent intent =  new Intent(this, HelpActivity.class);
+    	startActivity(intent);
     }
     
     public void openSettings(){
