@@ -16,16 +16,31 @@
 
 package com.example.ctrl_f_it;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import android.app.ListActivity;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.StrictMode;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
@@ -35,19 +50,24 @@ public class TextListActivity extends ListActivity {
     
     private static final int INSERT_ID = Menu.FIRST;
     private static final int DELETE_ID = Menu.FIRST + 1;
+    
 
     private NotesDbAdapter mDbHelper;
     
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
+    	StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectDiskReads()
+    			.detectDiskWrites().detectNetwork().penaltyLog().build());
+    	
         super.onCreate(savedInstanceState);
         setContentView(R.layout.text_list);
         mDbHelper = new NotesDbAdapter(this);
         mDbHelper.open();
         fillData();
         registerForContextMenu(getListView());
-    }
+        
+	}
     
     @SuppressWarnings("deprecation")
 	private void fillData() {
@@ -70,7 +90,7 @@ public class TextListActivity extends ListActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        menu.add(0, INSERT_ID,0, R.string.menu_insert);
+        menu.add(0, INSERT_ID, 0, R.string.menu_insert);
         return true;
     }
 

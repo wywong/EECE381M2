@@ -34,12 +34,17 @@
         excessive amounts of noise</string>
     <string name="help5">You can then select the lighting bolt from the main activity bar to select your editted image and begin processing it</string>
 
+    <string name="disconnect">Disconnect</string>
     <string name="no_documents">No Documents</string>
     <string name="menu_insert">Add Document</string>
     <string name="menu_delete">Delete Document</string>
     <string name="title">Title</string>
     <string name="body">Body</string>
     <string name="edit_text">Edit Text</string>
-    <string name="search">Search</string>
 
+    <string name="search">Ctrl F It</string>
+    <string name="send">Send</string>
+    <string name="retrieve">Retrieve</string>
+    <string name="connection_prompt">Set IP and Socket number</string>
+    <string name="sync">Sync</string>
 </resources>

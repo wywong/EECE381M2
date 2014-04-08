@@ -1,6 +1,11 @@
 package com.example.ctrl_f_it;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.app.Activity;
 import android.database.Cursor;
@@ -16,8 +21,21 @@ public class TextEditorActivity extends Activity {
     private EditText mBodyText;
     private Long mRowId;
     private NotesDbAdapter mDbHelper;
+    private int byteCount;
+    private int bytesToBeSent;
+    
+    private Button confirmButton;
+    private Button searchButton;
+    private Button sendButton;
+    private Button retrieveButton;
+    
+    private static char textEditorSendCode = (char)0;
+    private static char textEditorRetrCode = (char)1;
+    
+    
     public int textIndex = 0;
     public String searchTextPrev = null;
+    public boolean recieveDone = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,8 +49,10 @@ public class TextEditorActivity extends Activity {
         mTitleText = (EditText) findViewById(R.id.title);
         mBodyText = (EditText) findViewById(R.id.body);
 
-        Button confirmButton = (Button) findViewById(R.id.confirm);
-        Button searchButton = (Button) findViewById(R.id.search);
+        confirmButton = (Button) findViewById(R.id.confirm);
+        searchButton = (Button) findViewById(R.id.search);
+        sendButton = (Button) findViewById(R.id.send);
+        retrieveButton = (Button) findViewById(R.id.retrieve);
         
         if(savedInstanceState == null)
         	mRowId =  null;
@@ -64,6 +84,26 @@ public class TextEditorActivity extends Activity {
 				searchBody();
 			}
 		});
+        
+        sendButton.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                sendBody();
+            }
+        });
+        
+        retrieveButton.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+            	// Set up a timer task.  We will use the timer to check the
+         		// input queue every 500 ms
+         		TCPReadTimerTask tcp_task = new TCPReadTimerTask();
+         		Timer tcp_timer = new Timer();
+         		tcp_timer.schedule(tcp_task, 3000, 500);
+                retrBody();
+            }
+
+        });
     }
     
     @SuppressWarnings("deprecation")
@@ -150,5 +190,87 @@ public class TextEditorActivity extends Activity {
 			textIndex = 0;
 			Toast.makeText(getApplicationContext(), "End of File Reached", Toast.LENGTH_SHORT).show();
 		}
+	}
+    
+    private void sendBody() {
+    	sendMessage(textEditorSendCode);
+    	//while(!recieveDone);
+    	//recieveDone = false;
     }
+    
+    private void retrBody() {
+    	sendMessage(textEditorRetrCode);
+    	//while(!recieveDone);
+    	//recieveDone = false;
+    }
+       
+    public void sendMessage(char sendCode) {
+		//MyApplication app = (MyApplication) getApplication();
+		// Get the message from the box
+    	String msg = "";
+		if(sendCode == textEditorSendCode)
+			msg = ((EditText) findViewById(R.id.body)).getText().toString();			
+
+		// Create an array of bytes.  First byte will be the
+		// message length, and the next ones will be the message
+		
+		byte buf[] = new byte[msg.length() + 3];
+		buf[0] = (byte) msg.length();
+		buf[1] = (byte) (msg.length() >> 8);
+		buf[2] = (byte) sendCode;
+		System.arraycopy(msg.getBytes(), 0, buf, 2, msg.length());
+
+		// Now send through the output stream of the socket
+		
+		OutputStream out;
+		try {
+			out = MainActivity.sock.getOutputStream();
+			try {
+				out.write(buf, 0, msg.length() + 3);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+    public class TCPReadTimerTask extends TimerTask {
+		public void run() {
+			if (MainActivity.sock != null && MainActivity.sock.isConnected() && !MainActivity.sock.isClosed()) {
+				
+				try {
+					InputStream in = MainActivity.sock.getInputStream();
+
+					// See if any bytes are available from the Middleman
+					
+					int bytes_avail = in.available();
+					if (bytes_avail > 0) {
+						
+						// If so, read them in and create a string
+						
+						byte buf[] = new byte[bytes_avail];
+						in.read(buf);
+
+						final String s = new String(buf, 0, bytes_avail, "US-ASCII");
+		
+						//int x = (int) s.charAt(0);
+						// As explained in the tutorials, the GUI can not be
+						// updated in an asyncrhonous task.  So, update the GUI
+						// using the UI thread.
+						
+						runOnUiThread(new Runnable() {
+							public void run() {
+								EditText et = (EditText) findViewById(R.id.body);
+								et.setText(s);
+							}
+						});
+						
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 }
