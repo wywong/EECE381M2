@@ -193,7 +193,7 @@ public class camActivity extends Activity {
             BitmapFactory.Options options = new BitmapFactory.Options();
 
             bitmap = BitmapFactory.decodeFile(fileUri.getPath(),options);
-            rotatedBitmap = bitmap;
+            rotatedBitmap = bitmap.copy(bitmap.getConfig(), true);
 
             imgPreview.setImageBitmap(bitmap);
         } catch (NullPointerException e) {
