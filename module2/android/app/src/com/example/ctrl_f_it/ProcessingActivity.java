@@ -7,7 +7,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
@@ -116,6 +118,16 @@ public class ProcessingActivity extends Activity {
 			Log.d("word", w);
 		}
 
+		String body = "";
+		for(int i = 0; i < filteredWords.size(); i++) {
+			body += filteredWords.get(i) + " ";
+		}
+		
+		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+		String title = "NOTE_" + timeStamp;
+		NotesDbAdapter mDbHelper = new NotesDbAdapter(this);
+		mDbHelper.open();
+		mDbHelper.createNote(title, body);
 		finish();
 	}
 	
@@ -853,7 +865,7 @@ public class ProcessingActivity extends Activity {
         
         int numWhiteColumns = 0;
         Boolean firstCharacter = false;
-        double buffer = ((double)characterWidth)/5.0;
+        double buffer = ((double)characterWidth)/4.0;
         
         int tempCharColumns;
         int tempCharRows;
