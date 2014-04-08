@@ -218,7 +218,7 @@ public class TextEditorActivity extends Activity {
 		buf[0] = (byte) msg.length();
 		buf[1] = (byte) (msg.length() >> 8);
 		buf[2] = (byte) sendCode;
-		System.arraycopy(msg.getBytes(), 0, buf, 2, msg.length());
+		System.arraycopy(msg.getBytes(), 0, buf, 3, msg.length());
 
 		// Now send through the output stream of the socket
 		
