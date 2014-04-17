@@ -55,14 +55,14 @@ public class TextEditorActivity extends Activity {
         retrieveButton = (Button) findViewById(R.id.retrieve);
 
         if(savedInstanceState == null)
-        	mRowId =  null;
+            mRowId =  null;
         else
             mRowId = (Long) savedInstanceState.getSerializable(NotesDbAdapter.KEY_ROWID);
 
         if (mRowId == null) {
             Bundle extras = getIntent().getExtras();
             if(extras != null)
-            	mRowId = extras.getLong(NotesDbAdapter.KEY_ROWID);
+                mRowId = extras.getLong(NotesDbAdapter.KEY_ROWID);
             else
                 mRowId = null;
         }
@@ -80,10 +80,10 @@ public class TextEditorActivity extends Activity {
 
         searchButton.setOnClickListener(new View.OnClickListener() {
 
-			public void onClick(View view) {
-				searchBody();
-			}
-		});
+            public void onClick(View view) {
+                searchBody();
+            }
+        });
 
         sendButton.setOnClickListener(new View.OnClickListener() {
 
@@ -95,11 +95,11 @@ public class TextEditorActivity extends Activity {
         retrieveButton.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
-            	// Set up a timer task.  We will use the timer to check the
-         		// input queue every 500 ms
-         		TCPReadTimerTask tcp_task = new TCPReadTimerTask();
-         		Timer tcp_timer = new Timer();
-         		tcp_timer.schedule(tcp_task, 3000, 500);
+                // Set up a timer task.  We will use the timer to check the
+                 // input queue every 500 ms
+                 TCPReadTimerTask tcp_task = new TCPReadTimerTask();
+                 Timer tcp_timer = new Timer();
+                 tcp_timer.schedule(tcp_task, 3000, 500);
                 retrBody();
             }
 
@@ -107,13 +107,13 @@ public class TextEditorActivity extends Activity {
     }
 
     @SuppressWarnings("deprecation")
-	private void populateFields() {
-    	if(mRowId != null) {
-    		Cursor note = mDbHelper.fetchNote(mRowId);
-    		startManagingCursor(note);
-    		mTitleText.setText(note.getString(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_TITLE)));
-    		mBodyText.setText(note.getString(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_BODY)));
-    	}
+    private void populateFields() {
+        if(mRowId != null) {
+            Cursor note = mDbHelper.fetchNote(mRowId);
+            startManagingCursor(note);
+            mTitleText.setText(note.getString(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_TITLE)));
+            mBodyText.setText(note.getString(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_BODY)));
+        }
     }
 
     @Override
@@ -140,137 +140,137 @@ public class TextEditorActivity extends Activity {
         String body = mBodyText.getText().toString();
 
         if (title != null) {
-        	if (mRowId == null) {
-        		long id = mDbHelper.createNote(title, body);
-        		if (id > 0) {
-        			mRowId = id;
-        		}
-        	} else {
-        		mDbHelper.updateNote(mRowId, title, body);
-        	}
+            if (mRowId == null) {
+                long id = mDbHelper.createNote(title, body);
+                if (id > 0) {
+                    mRowId = id;
+                }
+            } else {
+                mDbHelper.updateNote(mRowId, title, body);
+            }
         } else {
-        	Toast.makeText(getApplicationContext(), "Title cannot be blank", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Title cannot be blank", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void searchBody() {
-    	int tt;
-		boolean found = false;
+        int tt;
+        boolean found = false;
 
-		String searchText = ((EditText)findViewById(R.id.searchString)).getText().toString();
-		if(!searchText.equals(searchTextPrev) ) {
-			searchTextPrev = searchText;
-			textIndex = 0;
-		}
+        String searchText = ((EditText)findViewById(R.id.searchString)).getText().toString();
+        if(!searchText.equals(searchTextPrev) ) {
+            searchTextPrev = searchText;
+            textIndex = 0;
+        }
 
-		String text = mBodyText.getText().toString();
+        String text = mBodyText.getText().toString();
 
-		searchText = searchText.toLowerCase(Locale.CANADA);
-		text = text.toLowerCase(Locale.CANADA);
+        searchText = searchText.toLowerCase(Locale.CANADA);
+        text = text.toLowerCase(Locale.CANADA);
 
-		int searchSize = searchText.length();
-		int bodySize = text.length();
+        int searchSize = searchText.length();
+        int bodySize = text.length();
 
-		for(tt = textIndex; tt < bodySize - searchSize + 1; tt++){
-			if(text.regionMatches(tt, searchText, 0, searchSize)){
-				tt++;
-				textIndex = tt;
-				found = true;
-				break;
-			}
-		}
+        for(tt = textIndex; tt < bodySize - searchSize + 1; tt++){
+            if(text.regionMatches(tt, searchText, 0, searchSize)){
+                tt++;
+                textIndex = tt;
+                found = true;
+                break;
+            }
+        }
 
-		if(found) {
-			mBodyText.setSelection(textIndex - 1, textIndex + searchSize - 1);
-		}
+        if(found) {
+            mBodyText.setSelection(textIndex - 1, textIndex + searchSize - 1);
+        }
 
-		found = false;
+        found = false;
 
-		if(tt >= bodySize - searchSize) {
-			textIndex = 0;
-			Toast.makeText(getApplicationContext(), "End of File Reached", Toast.LENGTH_SHORT).show();
-		}
-	}
+        if(tt >= bodySize - searchSize) {
+            textIndex = 0;
+            Toast.makeText(getApplicationContext(), "End of File Reached", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     private void sendBody() {
-    	sendMessage(textEditorSendCode);
-    	//while(!recieveDone);
-    	//recieveDone = false;
+        sendMessage(textEditorSendCode);
+        //while(!recieveDone);
+        //recieveDone = false;
     }
 
     private void retrBody() {
-    	sendMessage(textEditorRetrCode);
-    	//while(!recieveDone);
-    	//recieveDone = false;
+        sendMessage(textEditorRetrCode);
+        //while(!recieveDone);
+        //recieveDone = false;
     }
 
     public void sendMessage(char sendCode) {
-		//MyApplication app = (MyApplication) getApplication();
-		// Get the message from the box
-    	String msg = "";
-		if(sendCode == textEditorSendCode)
-			msg = ((EditText) findViewById(R.id.body)).getText().toString();
+        //MyApplication app = (MyApplication) getApplication();
+        // Get the message from the box
+        String msg = "";
+        if(sendCode == textEditorSendCode)
+            msg = ((EditText) findViewById(R.id.body)).getText().toString();
 
-		// Create an array of bytes.  First byte will be the
-		// message length, and the next ones will be the message
+        // Create an array of bytes.  First byte will be the
+        // message length, and the next ones will be the message
 
-		byte buf[] = new byte[msg.length() + 3];
-		buf[0] = (byte) msg.length();
-		buf[1] = (byte) (msg.length() >> 8);
-		buf[2] = (byte) sendCode;
-		System.arraycopy(msg.getBytes(), 0, buf, 3, msg.length());
+        byte buf[] = new byte[msg.length() + 3];
+        buf[0] = (byte) msg.length();
+        buf[1] = (byte) (msg.length() >> 8);
+        buf[2] = (byte) sendCode;
+        System.arraycopy(msg.getBytes(), 0, buf, 3, msg.length());
 
-		// Now send through the output stream of the socket
+        // Now send through the output stream of the socket
 
-		OutputStream out;
-		try {
-			out = MainActivity.sock.getOutputStream();
-			try {
-				out.write(buf, 0, msg.length() + 3);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+        OutputStream out;
+        try {
+            out = MainActivity.sock.getOutputStream();
+            try {
+                out.write(buf, 0, msg.length() + 3);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public class TCPReadTimerTask extends TimerTask {
-		public void run() {
-			if (MainActivity.sock != null && MainActivity.sock.isConnected() && !MainActivity.sock.isClosed()) {
+        public void run() {
+            if (MainActivity.sock != null && MainActivity.sock.isConnected() && !MainActivity.sock.isClosed()) {
 
-				try {
-					InputStream in = MainActivity.sock.getInputStream();
+                try {
+                    InputStream in = MainActivity.sock.getInputStream();
 
-					// See if any bytes are available from the Middleman
+                    // See if any bytes are available from the Middleman
 
-					int bytes_avail = in.available();
-					if (bytes_avail > 0) {
+                    int bytes_avail = in.available();
+                    if (bytes_avail > 0) {
 
-						// If so, read them in and create a string
+                        // If so, read them in and create a string
 
-						byte buf[] = new byte[bytes_avail];
-						in.read(buf);
+                        byte buf[] = new byte[bytes_avail];
+                        in.read(buf);
 
-						final String s = new String(buf, 0, bytes_avail, "US-ASCII");
+                        final String s = new String(buf, 0, bytes_avail, "US-ASCII");
 
-						//int x = (int) s.charAt(0);
-						// As explained in the tutorials, the GUI can not be
-						// updated in an asyncrhonous task.  So, update the GUI
-						// using the UI thread.
+                        //int x = (int) s.charAt(0);
+                        // As explained in the tutorials, the GUI can not be
+                        // updated in an asyncrhonous task.  So, update the GUI
+                        // using the UI thread.
 
-						runOnUiThread(new Runnable() {
-							public void run() {
-								EditText et = (EditText) findViewById(R.id.body);
-								et.setText(s);
-							}
-						});
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                EditText et = (EditText) findViewById(R.id.body);
+                                et.setText(s);
+                            }
+                        });
 
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }

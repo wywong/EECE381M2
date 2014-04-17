@@ -62,7 +62,7 @@ public class GridViewActivity extends Activity {
         gridView.setAdapter(adapter);
 
         gridView.setOnItemClickListener(new OnItemClickListener() {
-        	public void onItemClick(AdapterView parent, View v, int position, long id) {
+            public void onItemClick(AdapterView parent, View v, int position, long id) {
                 // on selecting grid view image
                 // launch full screen activity
 
@@ -71,14 +71,14 @@ public class GridViewActivity extends Activity {
 
                 i.putExtra("position", imagePaths.get(position));
                 GridViewActivity.this.startActivity(i);
-        	}
+            }
         });
     }
 
     private void InitilizeGridLayout() {
         Resources r = getResources();
         float padding = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-        		GRID_PADDING, r.getDisplayMetrics());
+                GRID_PADDING, r.getDisplayMetrics());
 
         columnWidth = (int) ((getScreenWidth() - ((NUM_OF_COLUMNS + 1) * padding)) / NUM_OF_COLUMNS);
 
@@ -122,7 +122,7 @@ public class GridViewActivity extends Activity {
             } else {
                 // image directory is empty
                 Toast.makeText(this, PHOTO_ALBUM
-                		+ " is empty. Please load some images in it !",
+                        + " is empty. Please load some images in it !",
                         Toast.LENGTH_LONG).show();
             }
 

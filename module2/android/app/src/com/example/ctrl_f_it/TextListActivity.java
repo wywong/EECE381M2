@@ -57,8 +57,8 @@ public class TextListActivity extends ListActivity {
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
-    	StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectDiskReads()
-    			.detectDiskWrites().detectNetwork().penaltyLog().build());
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectDiskReads()
+                .detectDiskWrites().detectNetwork().penaltyLog().build());
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.text_list);
@@ -67,10 +67,10 @@ public class TextListActivity extends ListActivity {
         fillData();
         registerForContextMenu(getListView());
 
-	}
+    }
 
     @SuppressWarnings("deprecation")
-	private void fillData() {
+    private void fillData() {
         // Get all of the rows from the database and create the item list
         Cursor notesCursor = mDbHelper.fetchAllNotes();
         startManagingCursor(notesCursor);
@@ -83,7 +83,7 @@ public class TextListActivity extends ListActivity {
 
         // Now create a simple cursor adapter and set it to display
         SimpleCursorAdapter notes =
-        	    new SimpleCursorAdapter(this, R.layout.text_row, notesCursor, from, to);
+                new SimpleCursorAdapter(this, R.layout.text_row, notesCursor, from, to);
         setListAdapter(notes);
     }
 
@@ -106,15 +106,15 @@ public class TextListActivity extends ListActivity {
     }
 
     @Override
-	public void onCreateContextMenu(ContextMenu menu, View v,
-			ContextMenuInfo menuInfo) {
-		super.onCreateContextMenu(menu, v, menuInfo);
-		menu.add(0, DELETE_ID, 0, R.string.menu_delete);
-	}
+    public void onCreateContextMenu(ContextMenu menu, View v,
+            ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        menu.add(0, DELETE_ID, 0, R.string.menu_delete);
+    }
 
     @Override
-	public boolean onContextItemSelected(MenuItem item) {
-    	switch(item.getItemId()) {
+    public boolean onContextItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
         case DELETE_ID:
             AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
             mDbHelper.deleteNote(info.id);
@@ -122,7 +122,7 @@ public class TextListActivity extends ListActivity {
             return true;
         }
         return super.onContextItemSelected(item);
-	}
+    }
 
     private void createNote() {
         Intent i = new Intent(this, TextEditorActivity.class);

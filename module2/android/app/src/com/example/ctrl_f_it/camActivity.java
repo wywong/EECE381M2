@@ -24,28 +24,28 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 public class camActivity extends Activity {
-	public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
-	public static final int CROP_IMAGE_REQUEST_CODE = 200;
-	public static final int MEDIA_TYPE_IMAGE = 1;
+    public static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
+    public static final int CROP_IMAGE_REQUEST_CODE = 200;
+    public static final int MEDIA_TYPE_IMAGE = 1;
 
-	private Uri fileUri;
-	private Uri tempUri;
-	private float currentRotate;
-	// Original bitmap from camera
-	private Bitmap bitmap;
-	// New bitmap after rotation, this is what's saved after confirm is pressed
-	private Bitmap rotatedBitmap;
+    private Uri fileUri;
+    private Uri tempUri;
+    private float currentRotate;
+    // Original bitmap from camera
+    private Bitmap bitmap;
+    // New bitmap after rotation, this is what's saved after confirm is pressed
+    private Bitmap rotatedBitmap;
 
-	private ImageView imgPreview;
-	private Button btnCapturePicture;
-	private Button btnConfirm;
-	private Button btnRetry;
-	private Button btnRotateLeft;
-	private Button btnRotateRight;
-	private Button btnFilter;
+    private ImageView imgPreview;
+    private Button btnCapturePicture;
+    private Button btnConfirm;
+    private Button btnRetry;
+    private Button btnRotateLeft;
+    private Button btnRotateRight;
+    private Button btnFilter;
 
-	public static String filePath;
-	@Override
+    public static String filePath;
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
@@ -71,7 +71,7 @@ public class camActivity extends Activity {
         });
 
         btnConfirm.setOnClickListener(new View.OnClickListener() {
-        	@Override
+            @Override
             public void onClick(View v) {
                 // capture picture
                 saveImage();
@@ -80,107 +80,107 @@ public class camActivity extends Activity {
         });
 
         btnRetry.setOnClickListener(new View.OnClickListener() {
-        	@Override
+            @Override
             public void onClick(View v) {
                 // capture picture
-        		deleteImage(fileUri);
+                deleteImage(fileUri);
                 captureImage();
             }
         });
 
         btnRotateLeft.setOnClickListener(new View.OnClickListener() {
-        	@Override
+            @Override
             public void onClick(View v) {
                 // rotate picture counter clockwise
-        		currentRotate -= 1;
-        		rotateBitmap();
-        		imgPreview.setImageBitmap(rotatedBitmap);
+                currentRotate -= 1;
+                rotateBitmap();
+                imgPreview.setImageBitmap(rotatedBitmap);
             }
         });
 
         btnRotateRight.setOnClickListener(new View.OnClickListener() {
-        	@Override
+            @Override
             public void onClick(View v) {
                 // rotate picture counter clockwise
-        		currentRotate += 1;
-        		rotateBitmap();
-        		imgPreview.setImageBitmap(rotatedBitmap);
+                currentRotate += 1;
+                rotateBitmap();
+                imgPreview.setImageBitmap(rotatedBitmap);
             }
         });
 
         btnFilter.setOnClickListener(new View.OnClickListener() {
-        	@Override
+            @Override
             public void onClick(View v) {
                 //get image from file and filter it to preview before running ocr
-        		Bitmap tempFilteredBitmap = rotatedBitmap.copy(rotatedBitmap.getConfig(), true);
-        		ProcessingActivity.otsuFilter(tempFilteredBitmap, 0);
-        		imgPreview.setImageBitmap(tempFilteredBitmap);
+                Bitmap tempFilteredBitmap = rotatedBitmap.copy(rotatedBitmap.getConfig(), true);
+                ProcessingActivity.otsuFilter(tempFilteredBitmap, 0);
+                imgPreview.setImageBitmap(tempFilteredBitmap);
             }
         });
 
-	}
+    }
 
-	 /*
-	  * Capturing Camera Image will launch camera app request image capture
-	  */
-	 private void captureImage() {
-	     Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+     /*
+      * Capturing Camera Image will launch camera app request image capture
+      */
+     private void captureImage() {
+         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-	     tempUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE);
+         tempUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE);
 
-	     intent.putExtra(MediaStore.EXTRA_OUTPUT, tempUri);
+         intent.putExtra(MediaStore.EXTRA_OUTPUT, tempUri);
 
-	     // start the image capture Intent
-	     startActivityForResult(intent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
-	 }
+         // start the image capture Intent
+         startActivityForResult(intent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
+     }
 
-	 /*
-	  * Save image captured and set public string to be most recent picture path
-	  */
-	 private void saveImage() {
-		 rotatedBitmap = removeTransparency(rotatedBitmap);
-	     filePath = fileUri.getPath();
-	     bmpToFile(rotatedBitmap, filePath);
-	 }
+     /*
+      * Save image captured and set public string to be most recent picture path
+      */
+     private void saveImage() {
+         rotatedBitmap = removeTransparency(rotatedBitmap);
+         filePath = fileUri.getPath();
+         bmpToFile(rotatedBitmap, filePath);
+     }
 
-	 /*
-	  * Delete most recently captured image
-	  */
-	 private void deleteImage(Uri uri) {
-		 imgPreview.setVisibility(View.GONE);
-		 File file = new File(uri.getPath());
-		 file.delete();
-	 }
+     /*
+      * Delete most recently captured image
+      */
+     private void deleteImage(Uri uri) {
+         imgPreview.setVisibility(View.GONE);
+         File file = new File(uri.getPath());
+         file.delete();
+     }
 
-	 /**
-	  * Receiving activity result method will be called after closing the camera
-	  * */
-	 @Override
-	 protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-	     // if the result is capturing Image
-	     if (requestCode == CAMERA_CAPTURE_IMAGE_REQUEST_CODE) {
-	         if (resultCode == RESULT_OK) {
-	             // successfully captured the image
-	             // prompt user to crop image
-	             crop();
-	         } else if (resultCode == RESULT_CANCELED) {
-	             // user cancelled Image capture
-	             Toast.makeText(getApplicationContext(), "User cancelled image capture", Toast.LENGTH_SHORT).show();
-	         } else {
-	             // failed to capture image
-	             Toast.makeText(getApplicationContext(), "Sorry! Failed to capture image", Toast.LENGTH_SHORT).show();
-	         }
-	     }
-	     else if(requestCode == CROP_IMAGE_REQUEST_CODE) {
-	    	 deleteImage(tempUri);
-	    	 previewCapturedImage();
-	     }
-	 }
+     /**
+      * Receiving activity result method will be called after closing the camera
+      * */
+     @Override
+     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+         // if the result is capturing Image
+         if (requestCode == CAMERA_CAPTURE_IMAGE_REQUEST_CODE) {
+             if (resultCode == RESULT_OK) {
+                 // successfully captured the image
+                 // prompt user to crop image
+                 crop();
+             } else if (resultCode == RESULT_CANCELED) {
+                 // user cancelled Image capture
+                 Toast.makeText(getApplicationContext(), "User cancelled image capture", Toast.LENGTH_SHORT).show();
+             } else {
+                 // failed to capture image
+                 Toast.makeText(getApplicationContext(), "Sorry! Failed to capture image", Toast.LENGTH_SHORT).show();
+             }
+         }
+         else if(requestCode == CROP_IMAGE_REQUEST_CODE) {
+             deleteImage(tempUri);
+             previewCapturedImage();
+         }
+     }
 
-	 /*
+     /*
      * Display image from a path to ImageView
      */
-	 private void previewCapturedImage() {
+     private void previewCapturedImage() {
         try {
             imgPreview.setVisibility(View.VISIBLE);
             btnConfirm.setVisibility(View.VISIBLE);
@@ -200,117 +200,117 @@ public class camActivity extends Activity {
             e.printStackTrace();
         }
         finally{
-        	Toast.makeText(getApplicationContext(),
-        	"If text matches given lines click confirm otherwise click retry to try again", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(),
+            "If text matches given lines click confirm otherwise click retry to try again", Toast.LENGTH_LONG).show();
         }
     }
 
 
-	 /**
-	  * removes transparencies from rotated image
-	  */
-	 private Bitmap removeTransparency(Bitmap rotatedBitmap){
-		 Bitmap newBitmap = Bitmap.createBitmap(rotatedBitmap, 0,0 , rotatedBitmap.getWidth(), rotatedBitmap.getHeight());
-		 Canvas background = new Canvas(newBitmap);
-		 background.drawARGB(255, Color.WHITE, Color.WHITE, Color.WHITE);
-		 background.drawBitmap(rotatedBitmap,0 ,0 , null);
-		 return newBitmap;
-	 }
+     /**
+      * removes transparencies from rotated image
+      */
+     private Bitmap removeTransparency(Bitmap rotatedBitmap){
+         Bitmap newBitmap = Bitmap.createBitmap(rotatedBitmap, 0,0 , rotatedBitmap.getWidth(), rotatedBitmap.getHeight());
+         Canvas background = new Canvas(newBitmap);
+         background.drawARGB(255, Color.WHITE, Color.WHITE, Color.WHITE);
+         background.drawBitmap(rotatedBitmap,0 ,0 , null);
+         return newBitmap;
+     }
 
 
-	 /* File store helper functions */
-	 /**
-	  * Creating file uri to store image/video
-	  */
-	 public Uri getOutputMediaFileUri(int type) {
-	     return Uri.fromFile(getOutputMediaFile(type));
-	 }
+     /* File store helper functions */
+     /**
+      * Creating file uri to store image/video
+      */
+     public Uri getOutputMediaFileUri(int type) {
+         return Uri.fromFile(getOutputMediaFile(type));
+     }
 
-	 /*
-	  * returning image / video
-	  */
-	 private static File getOutputMediaFile(int type) {
+     /*
+      * returning image / video
+      */
+     private static File getOutputMediaFile(int type) {
 
-	     // External sdcard location
-	     File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-	    		 "Ctrl_F_It");
+         // External sdcard location
+         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                 "Ctrl_F_It");
 
-	     // Create the storage directory if it does not exist
-	     if (!mediaStorageDir.exists()) {
-	         if (!mediaStorageDir.mkdirs()) {
-	             Log.d("Ctrl_F_It", "Oops! Failed create " + "Ctrl_F_It" + " directory");
-	             return null;
-	         }
-	     }
+         // Create the storage directory if it does not exist
+         if (!mediaStorageDir.exists()) {
+             if (!mediaStorageDir.mkdirs()) {
+                 Log.d("Ctrl_F_It", "Oops! Failed create " + "Ctrl_F_It" + " directory");
+                 return null;
+             }
+         }
 
-	     // Create a media file name
-	     String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-	     File mediaFile;
-	     if (type == MEDIA_TYPE_IMAGE) {
-	         mediaFile = new File(mediaStorageDir.getPath() + File.separator
-	                 + "IMG_" + timeStamp + ".bmp");
-	     } else {
-	         return null;
-	     }
+         // Create a media file name
+         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+         File mediaFile;
+         if (type == MEDIA_TYPE_IMAGE) {
+             mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                     + "IMG_" + timeStamp + ".bmp");
+         } else {
+             return null;
+         }
 
-	     return mediaFile;
-	 }
+         return mediaFile;
+     }
 
-	 /*
-	  * draw new bitmap with rotation
-	  */
-	 private void rotateBitmap() {
-		 int width = bitmap.getWidth();
-		 int height = bitmap.getHeight();
-		 Matrix rotationMatrix = new Matrix();
+     /*
+      * draw new bitmap with rotation
+      */
+     private void rotateBitmap() {
+         int width = bitmap.getWidth();
+         int height = bitmap.getHeight();
+         Matrix rotationMatrix = new Matrix();
 
-		 rotationMatrix.postRotate(currentRotate, width / 2, height / 2);
-		 rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, rotationMatrix, true);
-	 }
+         rotationMatrix.postRotate(currentRotate, width / 2, height / 2);
+         rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, rotationMatrix, true);
+     }
 
-	/*
-	 * write bitmap to file
-	 */
-	private void bmpToFile(Bitmap image, String filepath) {
-		FileOutputStream out = null;
-		File fileName = new File(filepath);
-		try {
-			out = new FileOutputStream(fileName);
-			image.compress(Bitmap.CompressFormat.PNG, 100, out);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try{
-				out.close();
-			} catch(Throwable ignore) {}
-		}
-	}
+    /*
+     * write bitmap to file
+     */
+    private void bmpToFile(Bitmap image, String filepath) {
+        FileOutputStream out = null;
+        File fileName = new File(filepath);
+        try {
+            out = new FileOutputStream(fileName);
+            image.compress(Bitmap.CompressFormat.PNG, 100, out);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try{
+                out.close();
+            } catch(Throwable ignore) {}
+        }
+    }
 
-	/*
-	 * prompts the user to crop the image
-	 */
-	private void crop() {
-		try {
-			fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE);
-			//call the standard crop action intent (the user device may not support it)
-			Intent cropIntent = new Intent("com.android.camera.action.CROP");
-			//indicate image type and Uri
-			cropIntent.setDataAndType(tempUri, "image/*");
-			//set crop properties
-			cropIntent.putExtra("crop", "true");
-			//retrieve data on return
-			cropIntent.putExtra("return-data", true);
-			cropIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
-			//start the activity - we handle returning in onActivityResult
-			startActivityForResult(cropIntent, CROP_IMAGE_REQUEST_CODE);
-		}
-		catch(ActivityNotFoundException anfe){
-		    //display an error message
-		    String errorMessage = "Whoops - your device doesn't support the crop action!";
-		    Toast toast = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
-		    toast.show();
-		}
-	}
+    /*
+     * prompts the user to crop the image
+     */
+    private void crop() {
+        try {
+            fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE);
+            //call the standard crop action intent (the user device may not support it)
+            Intent cropIntent = new Intent("com.android.camera.action.CROP");
+            //indicate image type and Uri
+            cropIntent.setDataAndType(tempUri, "image/*");
+            //set crop properties
+            cropIntent.putExtra("crop", "true");
+            //retrieve data on return
+            cropIntent.putExtra("return-data", true);
+            cropIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+            //start the activity - we handle returning in onActivityResult
+            startActivityForResult(cropIntent, CROP_IMAGE_REQUEST_CODE);
+        }
+        catch(ActivityNotFoundException anfe){
+            //display an error message
+            String errorMessage = "Whoops - your device doesn't support the crop action!";
+            Toast toast = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
+            toast.show();
+        }
+    }
 
 
 
