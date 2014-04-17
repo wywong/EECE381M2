@@ -107,7 +107,7 @@ public class camActivity extends Activity {
         		imgPreview.setImageBitmap(rotatedBitmap);
             }
         });
-        
+
         btnFilter.setOnClickListener(new View.OnClickListener() {
         	@Override
             public void onClick(View v) {
@@ -117,7 +117,7 @@ public class camActivity extends Activity {
         		imgPreview.setImageBitmap(tempFilteredBitmap);
             }
         });
-        
+
 	}
 
 	 /*
@@ -188,7 +188,7 @@ public class camActivity extends Activity {
             btnRotateLeft.setVisibility(View.VISIBLE);
             btnRotateRight.setVisibility(View.VISIBLE);
             btnFilter.setVisibility(View.VISIBLE);
-            
+
             // bitmap factory
             BitmapFactory.Options options = new BitmapFactory.Options();
 
@@ -205,7 +205,7 @@ public class camActivity extends Activity {
         }
     }
 
-	 
+
 	 /**
 	  * removes transparencies from rotated image
 	  */
@@ -214,9 +214,9 @@ public class camActivity extends Activity {
 		 Canvas background = new Canvas(newBitmap);
 		 background.drawARGB(255, Color.WHITE, Color.WHITE, Color.WHITE);
 		 background.drawBitmap(rotatedBitmap,0 ,0 , null);
-		 return newBitmap;	 
+		 return newBitmap;
 	 }
-	 
+
 
 	 /* File store helper functions */
 	 /**
@@ -232,7 +232,7 @@ public class camActivity extends Activity {
 	 private static File getOutputMediaFile(int type) {
 
 	     // External sdcard location
-	     File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), 
+	     File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
 	    		 "Ctrl_F_It");
 
 	     // Create the storage directory if it does not exist
@@ -285,7 +285,7 @@ public class camActivity extends Activity {
 			} catch(Throwable ignore) {}
 		}
 	}
-	
+
 	/*
 	 * prompts the user to crop the image
 	 */
@@ -293,7 +293,7 @@ public class camActivity extends Activity {
 		try {
 			fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE);
 			//call the standard crop action intent (the user device may not support it)
-			Intent cropIntent = new Intent("com.android.camera.action.CROP"); 
+			Intent cropIntent = new Intent("com.android.camera.action.CROP");
 			//indicate image type and Uri
 			cropIntent.setDataAndType(tempUri, "image/*");
 			//set crop properties
@@ -311,7 +311,7 @@ public class camActivity extends Activity {
 		    toast.show();
 		}
 	}
-	
-	
-	
+
+
+
 }

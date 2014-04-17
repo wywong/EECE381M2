@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2008 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -31,7 +31,7 @@ import android.util.Log;
  * Simple notes database access helper class. Defines the basic CRUD operations
  * for the notepad example, and gives the ability to list all notes as well as
  * retrieve or modify a specific note.
- * 
+ *
  * This has been improved from the first version of this tutorial through the
  * addition of better error handling and also using returning a Cursor instead
  * of using a collection of inner classes (which is less scalable and not
@@ -46,7 +46,7 @@ public class NotesDbAdapter {
     private static final String TAG = "NotesDbAdapter";
     private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
-    
+
     public static Set<Long> keyIDs = new HashSet<Long>();
 
 
@@ -87,7 +87,7 @@ public class NotesDbAdapter {
     /**
      * Constructor - takes the context to allow the database to be
      * opened/created
-     * 
+     *
      * @param ctx the Context within which to work
      */
     public NotesDbAdapter(Context ctx) {
@@ -98,7 +98,7 @@ public class NotesDbAdapter {
      * Open the notes database. If it cannot be opened, try to create a new
      * instance of the database. If it cannot be created, throw an exception to
      * signal the failure
-     * 
+     *
      * @return this (self reference, allowing this to be chained in an
      *         initialization call)
      * @throws SQLException if the database could be neither opened or created
@@ -118,7 +118,7 @@ public class NotesDbAdapter {
      * Create a new note using the title and body provided. If the note is
      * successfully created return the new rowId for that note, otherwise return
      * a -1 to indicate failure.
-     * 
+     *
      * @param title the title of the note
      * @param body the body of the note
      * @return rowId or -1 if failed
@@ -128,7 +128,7 @@ public class NotesDbAdapter {
         initialValues.put(KEY_TITLE, title);
         initialValues.put(KEY_BODY, body);
         long rowId = mDb.insert(DATABASE_TABLE, null, initialValues);
-        
+
         keyIDs.add(rowId);
 
         return rowId;
@@ -136,7 +136,7 @@ public class NotesDbAdapter {
 
     /**
      * Delete the note with the given rowId
-     * 
+     *
      * @param rowId id of note to delete
      * @return true if deleted, false otherwise
      */
@@ -147,7 +147,7 @@ public class NotesDbAdapter {
 
     /**
      * Return a Cursor over the list of all notes in the database
-     * 
+     *
      * @return Cursor over all notes
      */
     public Cursor fetchAllNotes() {
@@ -158,7 +158,7 @@ public class NotesDbAdapter {
 
     /**
      * Return a Cursor positioned at the note that matches the given rowId
-     * 
+     *
      * @param rowId id of note to retrieve
      * @return Cursor positioned to matching note, if found
      * @throws SQLException if note could not be found/retrieved
@@ -181,7 +181,7 @@ public class NotesDbAdapter {
      * Update the note using the details provided. The note to be updated is
      * specified using the rowId, and it is altered to use the title and body
      * values passed in
-     * 
+     *
      * @param rowId id of note to update
      * @param title value to set note title to
      * @param body value to set note body to
